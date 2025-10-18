@@ -5,9 +5,9 @@ import { generatePrompt } from "./prompter";
 const apiKey = process.env.OPENAI_API_KEY;
 
 const initOpenAI = async () => {
-  try {  
+  try {
     const openai = new OpenAI();
-    
+
     console.log("OpenAI API initialized");
     return openai;
   } catch (error) {
@@ -15,21 +15,27 @@ const initOpenAI = async () => {
   }
 };
 
+const enableImageGeneration = false;
+
 export const generateImage = async () => {
   console.log("generateImage");
-  
-  const openai = await initOpenAI();
-  
-  const response = await openai?.images.generate({
-    model: 'gpt-image-1',
-    prompt: await generatePrompt(),
-    background: 'opaque',
-    output_format: 'png',
-    quality: 'medium',
-    size: '1536x1024'
-  });
-  
-  console.log("response", response);
 
-  return response;
+  if (enableImageGeneration) {
+    const openai = await initOpenAI();
+
+    const response = await openai?.images.generate({
+      model: 'gpt-image-1',
+      prompt: await generatePrompt(),
+      background: 'opaque',
+      output_format: 'png',
+      quality: 'medium',
+      size: '1536x1024'
+    });
+
+    console.log("response", response);
+
+    return response;
+  } else {
+    return null;
+  }
 };

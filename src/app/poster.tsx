@@ -12,11 +12,15 @@ export default async function Poster() {
 
   return (
     <div>
-      <Image
-        src={`data:image/jpeg;base64,${image?.data}`}
-        alt={image?.quality || 'Hmm'}
-        layout="fill"
-      />
+      {image ?
+        <Image
+          src={`data:image/jpeg;base64,${image.data}`}
+          alt={image.quality || 'Hmm'}
+          layout="fill"
+        />
+        :
+        <div>Hmm</div>
+      }
     </div>
   );
 }

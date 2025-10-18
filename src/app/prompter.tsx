@@ -6,7 +6,7 @@ import { add, parseISO, format, formatDate } from "date-fns";
 import { fi } from 'date-fns/locale';
 
 const shortDateFormat = "dd.MM.yyyy"
-const toReadableDate = async (date: string) => {
+const toReadableDate = (date: string) => {
   log("date", date);
   const formatted = formatDate(parseISO(date), shortDateFormat);
   
@@ -28,9 +28,7 @@ const toReadableDate = async (date: string) => {
   return formatted;
 }
 
-const toTitle = async (date: string) => {
-  format(date, 'EEEE, DD. MMMM', { locale: fi });
-}
+const toTitle = (date: Date) => format(date, 'cccc, dd. MMMM', { locale: fi });
 
 const listEvents = async () => {
   const events = await getEvents();
@@ -40,7 +38,7 @@ const listEvents = async () => {
 export const generatePrompt = async () => {
   log("generatePrompt");
 
-  const eventList = listEvents();
+  const eventList = await listEvents();
 
   const prompt = `
     Tehtäväsi on generoida inforuutuun näkymä. Ruutu on vaaka-asennossa.
@@ -48,7 +46,7 @@ export const generatePrompt = async () => {
     Tee julisteesta mid century modern -tyylinen, kuten vaikkapa elokuvajuliste tai mainos. Korosta geometrisia muotoja, 1950-luvun ajanmukaista typografiaa ja muita tyylin design-elementtejä.
     Voit ottaa suuntaa myös atomic age -kuvakielestä.
     
-    Laita ylös otsikoksi tämän päivän nimi ja päivämäärä. Tänään on tiistai, 30. syyskuuta, 2025.
+    Laita ylös otsikoksi tämän päivän nimi ja päivämäärä. Tänään on ${toTitle(new Date())}
     
     Laita vasemmalle noin kolmanneksen levyiseen osioon tulevat tapahtumat. Tapahtumia ovat:
 
