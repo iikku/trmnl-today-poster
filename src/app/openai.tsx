@@ -20,12 +20,14 @@ const enableImageGeneration = false;
 export const generateImage = async () => {
   console.log("generateImage");
 
+  const prompt = await generatePrompt();
+  
   if (enableImageGeneration) {
     const openai = await initOpenAI();
 
     const response = await openai?.images.generate({
       model: 'gpt-image-1',
-      prompt: await generatePrompt(),
+      prompt,
       background: 'opaque',
       output_format: 'png',
       quality: 'medium',
