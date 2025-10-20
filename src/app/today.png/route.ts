@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateImage } from "../openai";
+import { fetchImage } from "../imageCache";
 import { log } from "console";
 import { join } from "path";
 import { tmpdir } from "os";
@@ -10,7 +10,7 @@ export const GET = async (
   req: NextRequest,
   route: {},
 ) => {
-  const generatedImage = await generateImage();
+  const generatedImage = await fetchImage();
 
   if (generatedImage) {
     // Write the file to the filesystem for black and white conversion with ImageMagick
