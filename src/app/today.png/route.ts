@@ -51,7 +51,7 @@ export const GET = async (
       await new Promise<void>((resolve, reject) =>
         execFile(
           "magick",
-          ["-size", "4x1", "xc:#000000", ":#555555", "xc:#aaaaaa", "xc:#ffffff", "+append", "-type", "Palette", colormap],
+          ["-size", "4x1", "xc:#000000", "xc:#555555", "xc:#aaaaaa", "xc:#ffffff", "+append", "-type", "Palette", colormap],
           (err) =>
             err ? reject(err) : resolve()
         )
