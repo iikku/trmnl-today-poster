@@ -31,7 +31,7 @@ export const generateImage = async () => {
       prompt,
       background: 'opaque',
       output_format: 'png',
-      quality: 'medium',
+      quality: 'low',
       size: '1536x1024'
     });
 

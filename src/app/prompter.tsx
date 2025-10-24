@@ -2,6 +2,7 @@
 
 import { getEvents } from "./calendar";
 import { getCurrentWeather } from "./openmeteo";
+import { todaysSpecialDayName } from "./specialDays";
 import { log } from "console";
 import { add, parseISO, format, formatDate } from "date-fns";
 import { fi } from 'date-fns/locale';
@@ -42,11 +43,24 @@ const readableWeather = async () => {
   "yö": ${weather.night.temperature} astetta, sadetta ${weather.night.rain} mm`;
 }
 
+const specialDayPrompt = (special: String | undefined) => {
+  if (!special) return "";
+  return "Tänään on " + special + ", joka on erityinen juhlapäivä. Lisää siihen liittyvä juhlatoivotus johonkin päin julistetta.";
+}
+
+const eventPrompt = (eventList: String[]) => {
+  if (eventList.length == 0) return "";
+  return `
+    Laita vasemmalle noin kolmanneksen levyiseen osioon tulevat kalenteritapahtumat. Tapahtumia ovat:
+    ${eventList}
+  `;
+}
 export const generatePrompt = async () => {
   log("generatePrompt");
 
   const eventList = await readableEvents();
   const currentWeather = await readableWeather();
+  const specialDay = await todaysSpecialDayName();
 
   const prompt = `
     Tehtäväsi on generoida inforuutuun näkymä. Ruutu on vaaka-asennossa.
@@ -58,16 +72,13 @@ export const generatePrompt = async () => {
     
     Laita ylös otsikoksi tämän päivän nimi ja päivämäärä. Tänään on ${toTitle(new Date())}
 
-    Jos tänään on virallinen liputuspäivä Suomessa, lisää juhlapäivän nimi tai siihen liittyvä juhlatoivotus johonkin päin julistetta.
+    ${specialDayPrompt(specialDay)}
+    ${eventPrompt(eventList)}
     
-    Laita vasemmalle noin kolmanneksen levyiseen osioon tulevat kalenteritapahtumat. Tapahtumia ovat:
-
-    ${eventList}
-
     Laita oikealle sääennuste seuraavilla tiedoilla:
     ${currentWeather}
 
-    Koita tunnistaa kalenterin tapahtumista, mahdollisesta juhlapäivästä ja sääennusteesta jokin teema ja koristele näkymää kevyesti teeman mukaisesti.
+    Koita tunnistaa viikonpäivästä ${eventList.length > 0 ? ", kalenterin tapahtumista" : ""} ${specialDay ? ", juhlapäivästä" : ""} ja sääennusteesta jokin teema ja koristele näkymää kevyesti teeman mukaisesti.
   `;
   log("response", prompt);
 
