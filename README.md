@@ -7,7 +7,9 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 Copy env.example to .env.local and replace it's values.
 
-First, run the development server:
+You need imagemagick installed on the server and runnable as `magick`.
+
+First, install the dependencies (`npm i`), then run the development server:
 
 ```bash
 npm run dev
