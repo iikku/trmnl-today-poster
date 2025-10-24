@@ -31,25 +31,31 @@ const toTitle = (date: Date) => format(date, 'cccc, dd. MMMM', { locale: fi });
 
 const readableEvents = async () => {
   const events = await getEvents();
-  return events.map(e => " " + toReadableDate(e.start?.date || "") + ": " + e.summary + "\n");
+  if (events.length == 0) {
+    return null;
+  }
+  return "{" +
+    events.map(e => "\"" + toReadableDate(e.start?.date || e.start?.dateTime || "") + "\": \"" + e.summary + "\"")
+    + "}";
 }
 
 const readableWeather = async () => {
   const weather = await getCurrentWeather();
-  return `
-  "aamu": ${weather.morning.temperature} astetta, sadetta ${weather.morning.rain} mm,
-  "päivä": ${weather.day.temperature} astetta, sadetta ${weather.day.rain} mm,
-  "ilta": ${weather.evening.temperature} astetta, sadetta ${weather.evening.rain} mm,
-  "yö": ${weather.night.temperature} astetta, sadetta ${weather.night.rain} mm`;
+  return `{
+    "aamu": "${weather.morning.temperature} astetta, sadetta ${weather.morning.rain} mm, sään symboli: ${weather.morning.symbol}",
+    "päivä": ${weather.day.temperature} astetta, sadetta ${weather.day.rain} mm, sään symboli: ${weather.day.symbol}",
+    "ilta": ${weather.evening.temperature} astetta, sadetta ${weather.evening.rain} mm, sään symboli: ${weather.evening.symbol}",
+    "yö": ${weather.night.temperature} astetta, sadetta ${weather.night.rain} mm, sään symboli: ${weather.night.symbol}"
+  }`
 }
 
-const specialDayPrompt = (special: String | undefined) => {
+const specialDayPrompt = (special: string | undefined) => {
   if (!special) return "";
   return "Tänään on " + special + ", joka on erityinen juhlapäivä. Lisää siihen liittyvä juhlatoivotus johonkin päin julistetta.";
 }
 
-const eventPrompt = (eventList: String[]) => {
-  if (eventList.length == 0) return "";
+const eventPrompt = (eventList: string | null) => {
+  if (eventList == null) return "";
   return `
     Laita vasemmalle noin kolmanneksen levyiseen osioon tulevat kalenteritapahtumat. Tapahtumia ovat:
     ${eventList}
@@ -63,12 +69,13 @@ export const generatePrompt = async () => {
   const specialDay = await todaysSpecialDayName();
 
   const prompt = `
-    Tehtäväsi on generoida inforuutuun näkymä. Ruutu on vaaka-asennossa.
+    Tehtäväsi on generoida inforuutuun julistemainen näkymä. Juliste on vaaka-asennossa.
 
-    Tee julisteesta mid century modern -tyylinen, kuten vaikkapa elokuvajuliste tai mainos. Korosta geometrisia muotoja, 1950-luvun ajanmukaista typografiaa ja muita tyylin design-elementtejä.
+    Tee julisteesta mid century modern -tyylinen, kuten vaikkapa elokuvajuliste, mainos tai aikakauslehden kansi.
+    Korosta geometrisia muotoja, 1950-luvun ajanmukaista modernia typografiaa ja muita tyylin design-elementtejä.
     Voit ottaa suuntaa myös atomic age -kuvakielestä.
 
-    Tee julisteesta kokonaisuudessaan suomen kielinen.
+    Tee julisteesta kokonaisuudessaan suomenkielinen.
     
     Laita ylös otsikoksi tämän päivän nimi ja päivämäärä. Tänään on ${toTitle(new Date())}
 
@@ -78,7 +85,7 @@ export const generatePrompt = async () => {
     Laita oikealle sääennuste seuraavilla tiedoilla:
     ${currentWeather}
 
-    Koita tunnistaa viikonpäivästä ${eventList.length > 0 ? ", kalenterin tapahtumista" : ""} ${specialDay ? ", juhlapäivästä" : ""} ja sääennusteesta jokin teema ja koristele näkymää kevyesti teeman mukaisesti.
+    Koita tunnistaa viikonpäivästä ${eventList ? ", kalenterin tapahtumista" : ""} ${specialDay ? ", juhlapäivästä" : ""} ja sääennusteesta jokin teema ja koristele näkymää kevyesti teeman mukaisesti.
   `;
   log("response", prompt);
 

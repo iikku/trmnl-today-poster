@@ -35,8 +35,6 @@ export const generateImage = async () => {
       size: '1536x1024'
     });
 
-    console.log("response", response);
-
     return response?.data?.at(0)?.b64_json;
   } else {
     return mockImage();

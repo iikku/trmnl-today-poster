@@ -2,11 +2,12 @@
 
 import { log } from 'console';
 import { fetchWeatherApi } from 'openmeteo';
+import { openWeatherWMOToEmoji } from '@akaguny/open-meteo-wmo-to-emoji';
 
 const params = {
   "latitude": process.env.WEATHER_LATITUDE,
   "longitude": process.env.WEATHER_LONGITUDE,
-  "hourly": ["temperature_2m", "rain"],
+  "hourly": ["temperature_2m", "rain", "weather_code", "is_day"],
   "timezone": "GMT+2",
   "forecast_days": 1,
 };
@@ -34,12 +35,15 @@ const weatherData = {
     ),
     temperature_2m: hourly.variables(0)!.valuesArray(),
     rain: hourly.variables(1)!.valuesArray(),
+    weatherCode: hourly.variables(2)!.valuesArray(),
+    isDay: hourly.variables(3)!.valuesArray()
   },
 };
 
 type Weather = {
   temperature: number,
-  rain: number
+  rain: number,
+  symbol: string
 }
 
 type WeatherForFullDay = {
@@ -53,6 +57,7 @@ const weatherAtHour = (hour: number) =>
 ({
   temperature: Math.round(weatherData.hourly.temperature_2m?.at(hour) || 0),
   rain: Math.round(weatherData.hourly.rain?.at(hour) || 0),
+  symbol: openWeatherWMOToEmoji(weatherData.hourly.weatherCode?.at(hour), weatherData.hourly.isDay?.at(hour) == 1 || false).value
 });
 
 
@@ -63,7 +68,7 @@ const current: WeatherForFullDay = {
   night: weatherAtHour(22)
 }
 
-log("we", current)
+log("Current weather", current)
 
 export const getCurrentWeather = async () => {
   return current;

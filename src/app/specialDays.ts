@@ -4,7 +4,7 @@ import { formatDate } from "date-fns";
 /**
  * Human readable names for each special date
  */
-const finnishFlagDays = new Map<String, String>([
+const finnishFlagDays = new Map<string, string>([
     ["05.02.", "J.L. Runebergin päivä"],
     ["28.02.", "Kalevalan päivä"],
     ["19.03.", "Minna Canthin päivä eli tasa-arvon päivä"],
@@ -25,7 +25,7 @@ const finnishFlagDays = new Map<String, String>([
 )
 
 // Function to find holiday by fixed date (dd.MM.)
-function getFixedHolidayByDate(holidays: { "date": String, "localName": String }[], inputDate: String) {
+function getFixedHolidayByDate(holidays: { "date": string, "localName": string }[], inputDate: string) {
     // Normalize input like "06.01." → "06.01"
     const cleanInput = inputDate.replace(/\.$/, "");
 
@@ -36,7 +36,7 @@ function getFixedHolidayByDate(holidays: { "date": String, "localName": String }
     }) || null;
 }
 
-const getTodaysCommonHoliday = async (date: String) => {
+const getTodaysCommonHoliday = async (date: string) => {
     const holidays = await fetch("https://date.nager.at/api/v3/PublicHolidays/2026/FI");
     const holidayJson = await holidays.json();
     return getFixedHolidayByDate(holidayJson, date)?.localName;
