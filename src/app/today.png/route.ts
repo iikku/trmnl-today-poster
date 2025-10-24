@@ -29,7 +29,7 @@ export const GET = async (
       await new Promise<void>((resolve, reject) =>
         execFile(
           "magick",
-          [inputFile, "-resize", "800x480^", "-extent", "800x480", "-monochrome", "-colors", "2", "-depth", "1", "-strip", "png:" + outputFile],
+          [inputFile, "-resize", "800x480", "-gravity", "center", "-extent", "800x480", "-background", "white", "-monochrome", "-colors", "2", "-depth", "1", "-strip", "png:" + outputFile],
           (err) =>
             err ? reject(err) : resolve()
         )
@@ -51,7 +51,7 @@ export const GET = async (
       await new Promise<void>((resolve, reject) =>
         execFile(
           "magick",
-          [inputFile, "-resize", "800x480^", "-extent", "800x480", "-dither", "FloydSteinberg", "-remap", colormap, "-define", "png:bit-depth=2", "-define", "png:color-type=0", outputFile],
+          [inputFile, "-resize", "800x480", "-gravity", "center", "-extent", "800x480", "-background", "white", "-dither", "FloydSteinberg", "-remap", colormap, "-define", "png:bit-depth=2", "-define", "png:color-type=0", outputFile],
           (err) =>
             err ? reject(err) : resolve()
         )
