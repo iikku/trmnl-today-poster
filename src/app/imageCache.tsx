@@ -6,7 +6,7 @@ import { mkdir, readFile, unlink, writeFile } from "fs/promises";
 import { formatDate } from "date-fns";
 
 const CACHE_DIR = path.join(process.cwd(), '.image-cache');
-const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 hours in ms
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in ms - If you feel rich, you can generate images more often by decreasing this.
 
 async function ensureCacheDir() {
   try {
