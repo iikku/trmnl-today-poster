@@ -34,4 +34,4 @@ bun dev
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 The main page has an image which points to /today.png which is a 2-bit grayscale image at 800x480 resolution.
-You can add this image url to TRMNL with the [https://usetrmnl.com/plugin_settings?keyname=alias](Alias plugin).
+You can add this image url to TRMNL with the [Alias plugin](https://usetrmnl.com/plugin_settings?keyname=alias).
