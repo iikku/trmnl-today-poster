@@ -7,9 +7,11 @@ import { log } from "console";
 import { add, parseISO, format, formatDate } from "date-fns";
 import { fi } from 'date-fns/locale';
 
+const readableShortDateFormat = "cccc dd.MM."
 const shortDateFormat = "dd.MM.yyyy"
 const toReadableDate = (date: string) => {
-  const formatted = formatDate(parseISO(date), shortDateFormat);
+  const asDate = parseISO(date);
+  const formatted = formatDate(asDate, shortDateFormat);
 
   if (formatDate(new Date(), shortDateFormat) == formatted) {
     return "Tänään";
@@ -23,10 +25,10 @@ const toReadableDate = (date: string) => {
     return "Ylihuomenna";
   }
 
-  return formatted;
+  return formatDate(asDate, readableShortDateFormat, { locale: fi });
 }
 
-const toTitle = (date: Date) => format(date, 'cccc, dd. MMMM', { locale: fi });
+const toTitle = (date: Date) => format(date, 'cccc dd. MMMM', { locale: fi });
 
 const readableEvents = async () => {
   const events = await getEvents();
