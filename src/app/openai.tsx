@@ -2,6 +2,7 @@
 import { OpenAI } from "openai";
 import { mockImage } from "./mockImage";
 import { generatePrompt } from "./prompter";
+import { log } from "console";
 
 const apiKey = process.env.OPENAI_API_KEY;
 
@@ -9,7 +10,7 @@ const initOpenAI = async () => {
   try {
     const openai = new OpenAI();
 
-    console.log("OpenAI API initialized");
+    log("OpenAI API initialized");
     return openai;
   } catch (error) {
     console.error("Error initializing OpenAI API:", error);
@@ -19,9 +20,8 @@ const initOpenAI = async () => {
 const enableImageGeneration = false;
 
 export const generateImage = async () => {
-  console.log("generateImage");
-
   if (enableImageGeneration) {
+    log("generating image");
     const prompt = await generatePrompt();
 
     const openai = await initOpenAI();
@@ -37,6 +37,7 @@ export const generateImage = async () => {
 
     return response?.data?.at(0)?.b64_json;
   } else {
+    log("Returning the mock image");
     return mockImage();
   }
 };

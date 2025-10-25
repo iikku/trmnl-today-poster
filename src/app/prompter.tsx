@@ -9,7 +9,6 @@ import { fi } from 'date-fns/locale';
 
 const shortDateFormat = "dd.MM.yyyy"
 const toReadableDate = (date: string) => {
-  log("date", date);
   const formatted = formatDate(parseISO(date), shortDateFormat);
 
   if (formatDate(new Date(), shortDateFormat) == formatted) {
@@ -43,9 +42,9 @@ const readableWeather = async () => {
   const weather = await getCurrentWeather();
   return `{
     "aamu": "${weather.morning.temperature} astetta, sadetta ${weather.morning.rain} mm, sään symboli: ${weather.morning.symbol}",
-    "päivä": ${weather.day.temperature} astetta, sadetta ${weather.day.rain} mm, sään symboli: ${weather.day.symbol}",
-    "ilta": ${weather.evening.temperature} astetta, sadetta ${weather.evening.rain} mm, sään symboli: ${weather.evening.symbol}",
-    "yö": ${weather.night.temperature} astetta, sadetta ${weather.night.rain} mm, sään symboli: ${weather.night.symbol}"
+    "päivä": "${weather.day.temperature} astetta, sadetta ${weather.day.rain} mm, sään symboli: ${weather.day.symbol}",
+    "ilta": "${weather.evening.temperature} astetta, sadetta ${weather.evening.rain} mm, sään symboli: ${weather.evening.symbol}",
+    "yö": "${weather.night.temperature} astetta, sadetta ${weather.night.rain} mm, sään symboli: ${weather.night.symbol}"
   }`
 }
 
