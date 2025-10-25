@@ -1,5 +1,6 @@
 # TRMNL Daily Poster
-![Example image of use](https://github.com/iikku/trmnl-today-poster/src/resources/example-use.jpg "Example image of use")
+![Example image of use](https://github.com/user-attachments/assets/f686c3ff-aa9a-45f2-9cd3-4351694a1003 "Example image of use")
+
 Generates a daily poster from the provided data. Fetches events from Google Calendar and weather data from Open-Meteo and holidays from date.nager.at.
 Uses OpenAI gpt-image-1 to generate the poster.
 The created poster image is intended to be used with the [https://usetrmnl.com/](TRMNL OG) e-ink display device.
