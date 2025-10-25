@@ -4,8 +4,6 @@ import { mockImage } from "./mockImage";
 import { generatePrompt } from "./prompter";
 import { log } from "console";
 
-const apiKey = process.env.OPENAI_API_KEY;
-
 const initOpenAI = async () => {
   try {
     const openai = new OpenAI();
@@ -17,7 +15,11 @@ const initOpenAI = async () => {
   }
 };
 
-const enableImageGeneration = false;
+/**
+ * It can be useful to disable image generation for development time,
+ * so that there's less OpenAI api use 💸
+ */
+const enableImageGeneration = process.env.IMAGE_GENERATION_ENABLED;
 
 export const generateImage = async () => {
   if (enableImageGeneration) {
