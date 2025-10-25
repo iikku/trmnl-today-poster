@@ -22,7 +22,7 @@ const initOpenAI = async () => {
 const enableImageGeneration = process.env.IMAGE_GENERATION_ENABLED;
 
 export const generateImage = async () => {
-  if (enableImageGeneration) {
+  if (enableImageGeneration === 'true') {
     log("generating image");
     const prompt = await generatePrompt();
 
@@ -39,7 +39,7 @@ export const generateImage = async () => {
 
     return response?.data?.at(0)?.b64_json;
   } else {
-    log("Returning the mock image");
+    log("Returning the mock image instead of generating with the API");
     return mockImage();
   }
 };
