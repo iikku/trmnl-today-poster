@@ -37,7 +37,8 @@ function getFixedHolidayByDate(holidays: { "date": string, "localName": string }
 }
 
 const getTodaysCommonHoliday = async (date: string) => {
-    const holidays = await fetch("https://date.nager.at/api/v3/PublicHolidays/2026/FI");
+    const year = formatDate(new Date(), 'yyyy');
+    const holidays = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/FI`);
     const holidayJson = await holidays.json();
     return getFixedHolidayByDate(holidayJson, date)?.localName;
 }
