@@ -3,7 +3,7 @@
 
 Generates a daily poster from the provided data. Fetches events from Google Calendar and weather data from Open-Meteo and holidays from date.nager.at.
 Uses OpenAI gpt-image-1 to generate the poster.
-The created poster image is intended to be used with the [https://usetrmnl.com/](TRMNL OG) e-ink display device.
+The created poster image is intended to be used with the [TRMNL OG](https://usetrmnl.com/) e-ink display device.
 
 For now, the generated poster will be in Finnish.
 
