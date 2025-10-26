@@ -47,7 +47,11 @@ export const transmogrify = async (image: string) => {
       await new Promise<void>((resolve, reject) =>
         execFile(
           "magick",
-          [inputFile, "-resize", "800x480", "-gravity", "center", "-extent", "800x480", "-background", "white", "-dither", "FloydSteinberg", "-remap", colormap, "-define", "png:bit-depth=2", "-define", "png:color-type=0", outputFile],
+          [inputFile,
+            "(", "+clone", "-resize", "800x480^", "-gravity", "center", "-extent", "800x480", "-blur", "0x07", ")",
+            "-resize", "800x480", "-swap", "0,1",
+            "-gravity", "center", "-compose", "over", "-composite",
+            "-dither", "FloydSteinberg", "-remap", colormap, "-define", "png:bit-depth=2", "-define", "png:color-type=0", outputFile],
           (err) =>
             err ? reject(err) : resolve()
         )
