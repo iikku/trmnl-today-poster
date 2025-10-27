@@ -48,7 +48,7 @@ export const transmogrify = async (image: string) => {
         execFile(
           "magick",
           [inputFile,
-            "(", "+clone", "-resize", "800x480^", "-gravity", "center", "-extent", "800x480", "-blur", "0x07", ")",
+            "(", "+clone", "-resize", "800x480^", "-gravity", "center", "-extent", "800x480", "-blur", "0x15", ")",
             "-resize", "800x480", "-swap", "0,1",
             "-gravity", "center", "-compose", "over", "-composite",
             "-dither", "FloydSteinberg", "-remap", colormap, "-define", "png:bit-depth=2", "-define", "png:color-type=0", outputFile],
