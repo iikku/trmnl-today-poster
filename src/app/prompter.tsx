@@ -35,9 +35,9 @@ const readableEvents = async () => {
   if (events.length == 0) {
     return null;
   }
-  return "{" +
-    events.map(e => "\"" + toReadableDate(e.start?.date || e.start?.dateTime || "") + "\": \"" + e.summary + "\"")
-    + "}";
+  return events
+    .map(e => "\"" + toReadableDate(e.start?.date || e.start?.dateTime || "") + "\": \"" + e.summary + "\"")
+    .join(",\n");
 }
 
 const readableWeather = async () => {
@@ -45,14 +45,18 @@ const readableWeather = async () => {
   return `
   - Sääennuste (oikeassa osiossa):
     
-  Sääennuste koostuu neljästä ajankohdasta: aamu, päivä, ilta ja yö. Jokaiseen ajankohtaan kuuluu symboli säätilalle, lämpötila Celsius-asteina ja sademäärä millimetreinä.
-  {
-    "aamu": {"sään symboli": "${weather.morning.symbol}", "lämpötila": "${weather.morning.temperature} astetta", "sademäärä": "${weather.morning.rain} mm"},
-    "päivä": {"sään symboli": "${weather.day.symbol}", "lämpötila": "${weather.day.temperature} astetta", "sademäärä": "${weather.day.rain} mm"},
-    "ilta": {"sään symboli": "${weather.evening.symbol}", "lämpötila": "${weather.evening.temperature} astetta", "sademäärä": "${weather.evening.rain} mm"},
-    "yö": {"sään symboli": "${weather.night.symbol}", "lämpötila": "${weather.night.temperature} astetta", "sademäärä": "${weather.night.rain} mm"}
-  }
+  Sääennuste koostuu tasan neljästä ajankohdasta: aamu, päivä, ilta ja yö. Graafisesti ennuste koostuu tasan neljästä erillisestä ruudusta, joilla jokaisella on oma otsikkonsa: aamu, päivä, ilta tai yö.
+  Jokaisessa ruudussa tulee näkyä symboli säätilalle, lämpötila Celsius-asteina ja sademäärä millimetreinä.
+  Sijoita nämä tismalleen neljä sääruutua vierekkäin, allekkain tai selkeästi erotettuna 2x2-ruudukoksi, jotta kaikki näkyvät.
+  Älä jätä yhtäkään ajankohtaa pois.
+
+  Näytä sääennusteen tiedot seuraavassa järjestyksessä:
   
+  1. Aamu: sään symboli: ${weather.morning.symbol}, lämpötila: ${weather.morning.temperature} astetta, sademäärä: ${weather.morning.rain} mm
+  2. Päivä: sään symboli: ${weather.day.symbol}, lämpötila: ${weather.day.temperature} astetta, sademäärä: ${weather.day.rain} mm
+  3. Ilta: sään symboli: ${weather.evening.symbol}, lämpötila: ${weather.evening.temperature} astetta, sademäärä: ${weather.evening.rain} mm
+  4. Yö: sään symboli: ${weather.night.symbol}, lämpötila: ${weather.night.temperature} astetta, sademäärä: ${weather.night.rain} mm
+
   Esitä sää selkeästi ikään kuin osana 50-luvun mainosta - ehkä tyyliteltyinä ikoneina lämpötilojen ja symbolien kera.
   Sademäärän ja lämpötilan on oltava helposti luettavissa.
   `
