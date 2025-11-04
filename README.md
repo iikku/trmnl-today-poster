@@ -13,7 +13,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 Copy env.example to .env.local and replace it's values.
 
-A thorough walkthrough on how to get Google calendar related values to the enviroment file, you can checkout [https://javascript.plainenglish.io/nextjs-application-to-manage-your-google-calendar-and-your-invites-28dce1707b24](https://javascript.plainenglish.io/nextjs-application-to-manage-your-google-calendar-and-your-invites-28dce1707b24)
+For a thorough walkthrough on how to get Google calendar related values to the enviroment file, you can checkout [https://javascript.plainenglish.io/nextjs-application-to-manage-your-google-calendar-and-your-invites-28dce1707b24](https://javascript.plainenglish.io/nextjs-application-to-manage-your-google-calendar-and-your-invites-28dce1707b24)
 
 OpenAI API Key is available at https://platform.openai.com/settings/organization/api-keys
 
