@@ -28,7 +28,7 @@ const toReadableDate = (date: string) => {
   return formatDate(asDate, readableShortDateFormat, { locale: fi });
 }
 
-const toTitle = (date: Date) => format(date, 'cccc dd. MMMM', { locale: fi });
+const toTitle = (date: Date) => format(date, 'cccc d. MMMM', { locale: fi });
 
 const readableEvents = async () => {
   const events = await getEvents();
@@ -42,12 +42,20 @@ const readableEvents = async () => {
 
 const readableWeather = async () => {
   const weather = await getCurrentWeather();
-  return `{
-    "aamu": "${weather.morning.temperature} astetta, sadetta ${weather.morning.rain} mm, sään symboli: ${weather.morning.symbol}",
-    "päivä": "${weather.day.temperature} astetta, sadetta ${weather.day.rain} mm, sään symboli: ${weather.day.symbol}",
-    "ilta": "${weather.evening.temperature} astetta, sadetta ${weather.evening.rain} mm, sään symboli: ${weather.evening.symbol}",
-    "yö": "${weather.night.temperature} astetta, sadetta ${weather.night.rain} mm, sään symboli: ${weather.night.symbol}"
-  }`
+  return `
+  - Sääennuste (oikeassa osiossa):
+    
+  Sääennuste koostuu neljästä ajankohdasta: aamu, päivä, ilta ja yö. Jokaiseen ajankohtaan kuuluu symboli säätilalle, lämpötila Celsius-asteina ja sademäärä millimetreinä.
+  {
+    "aamu": {"sään symboli": "${weather.morning.symbol}", "lämpötila": "${weather.morning.temperature} astetta", "sademäärä": "${weather.morning.rain} mm"},
+    "päivä": {"sään symboli": "${weather.day.symbol}", "lämpötila": "${weather.day.temperature} astetta", "sademäärä": "${weather.day.rain} mm"},
+    "ilta": {"sään symboli": "${weather.evening.symbol}", "lämpötila": "${weather.evening.temperature} astetta", "sademäärä": "${weather.evening.rain} mm"},
+    "yö": {"sään symboli": "${weather.night.symbol}", "lämpötila": "${weather.night.temperature} astetta", "sademäärä": "${weather.night.rain} mm"}
+  }
+  
+  Esitä sää selkeästi ikään kuin osana 50-luvun mainosta - ehkä tyyliteltyinä ikoneina lämpötilojen ja symbolien kera.
+  Sademäärän ja lämpötilan on oltava helposti luettavissa.
+  `
 }
 
 const specialDayPrompt = (special: string | undefined) => {
@@ -58,8 +66,11 @@ const specialDayPrompt = (special: string | undefined) => {
 const eventPrompt = (eventList: string | null) => {
   if (eventList == null) return "";
   return `
-    Laita vasemmalle noin kolmanneksen levyiseen osioon tulevat kalenteritapahtumat. Tapahtumia ovat:
+    - Kalenteritapahtumat (Vasemmassa kolmanneksessa):
+    
     ${eventList}
+    
+    Tapahtumien asettelu voi olla pysty- tai vaakasuuntainen, riippuen visuaalisesta tasapainosta. Käytä erotteluun esimerkiksi tyyliteltyjä palloja, viivoja tai muita geometrisia elementtejä.
   `;
 }
 export const generatePrompt = async () => {
@@ -70,23 +81,27 @@ export const generatePrompt = async () => {
   const specialDay = await todaysSpecialDayName();
 
   const prompt = `
-    Tehtäväsi on generoida inforuutuun julistemainen näkymä. Juliste on vaaka-asennossa.
-
-    Tee julisteesta mid century modern -tyylinen, kuten vaikkapa elokuvajuliste, mainos tai aikakauslehden kansi.
-    Korosta geometrisia muotoja, 1950-luvun ajanmukaista modernia typografiaa ja muita tyylin design-elementtejä.
-    Voit ottaa suuntaa myös atomic age -kuvakielestä.
-
-    Tee julisteesta kokonaisuudessaan suomenkielinen.
+    Luo vaakasuuntainen, posterimainen infograafinen näkymä, joka henkii 1950-luvun puolivälin modernia tyyliä (Mid-Century Modern).
+    Inspiraationa voivat toimia aikakauden elokuva- ja matkailujulisteet, mainokset tai aikakauslehtien kannet.
+    Korosta geometrisiä muotoja, rohkeaa, ajanmukaista typografiaa (esim. sans-serif-fontit) ja muita tyylin tunnusomaisia design-elementtejä, kuten orgaanisia muotoja, kirkkaita kontrasteja ja atomic age -henkistä kuvakieltä (esim. tyyliteltyjä atomeja, satelliitteja tai tähtikuvioita).
     
-    Laita ylös otsikoksi tämän päivän nimi ja päivämäärä. Tänään on ${toTitle(new Date())}
+    Teksti ja asettelu:
 
-    ${specialDayPrompt(specialDay)}
+    Kaikki teksti julisteessa tulee olla suomeksi.
+
+    - Otsikko (Yläreunassa, keskitetty tai linjattu tyylikkäästi):
+
+    "${toTitle(new Date())}" (Käytä rohkeaa, 50-luvun tyylistä otsikkofonttia).
+
     ${eventPrompt(eventList)}
+    ${specialDayPrompt(specialDay)}
     
-    Laita oikealle sääennuste seuraavilla tiedoilla:
     ${currentWeather}
 
-    Koita tunnistaa viikonpäivästä ${eventList ? ", kalenterin tapahtumista" : ""} ${specialDay ? ", juhlapäivästä" : ""} ja sääennusteesta jokin teema ja koristele näkymää kevyesti teeman mukaisesti.
+    - Teema ja koristelu:
+    Koita tunnistaa viikonpäivästä ${eventList ? ", kalenterin tapahtumista" : ""} ${specialDay ? ", juhlapäivästä" : ""} ja sääennusteesta jokin yhtenäinen teema tai useampi erillistä teemaa ja koristele näkymää kevyesti sen mukaisesti.
+
+    Tavoite: Luo visuaalisesti houkutteleva ja selkeä infograafi, joka yhdistää Mid-Century Modern -estetiikan nykypäivän tiedot saumattomasti.
   `;
   log("response", prompt);
 
