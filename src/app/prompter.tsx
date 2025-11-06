@@ -46,9 +46,10 @@ const readableWeather = async () => {
   - Sääennuste (oikeassa osiossa):
     
   Sääennuste koostuu tasan neljästä ajankohdasta: aamu, päivä, ilta ja yö. Graafisesti ennuste koostuu tasan neljästä erillisestä ruudusta, joilla jokaisella on oma otsikkonsa: aamu, päivä, ilta tai yö.
-  Jokaisessa ruudussa tulee näkyä symboli säätilalle, lämpötila Celsius-asteina ja sademäärä millimetreinä.
+  Jokaisessa ruudussa tulee näkyä symboli säätilalle, lämpötila asteina ja sademäärä millimetreinä.
+  Voit lisätä jokaiselle neljälle ruudulle myös ajankohdan nimen: aamu, päivä, ilta tai yö.
   Sijoita nämä tismalleen neljä sääruutua vierekkäin, allekkain tai selkeästi erotettuna 2x2-ruudukoksi, jotta kaikki näkyvät.
-  Älä jätä yhtäkään ajankohtaa pois.
+  Älä jätä yhtäkään ajankohtaa pois. Laita aamun jälkeen päivä, päivän jälkeen ilta ja illan jälkeen yö.
 
   Näytä sääennusteen tiedot seuraavassa järjestyksessä:
   
@@ -57,7 +58,7 @@ const readableWeather = async () => {
   3. Ilta: sään symboli: ${weather.evening.symbol}, lämpötila: ${weather.evening.temperature} astetta, sademäärä: ${weather.evening.rain} mm
   4. Yö: sään symboli: ${weather.night.symbol}, lämpötila: ${weather.night.temperature} astetta, sademäärä: ${weather.night.rain} mm
 
-  Esitä sää selkeästi ikään kuin osana 50-luvun mainosta - ehkä tyyliteltyinä ikoneina lämpötilojen ja symbolien kera.
+  Esitä sää selkeästi ikään kuin osana 50-luvun mainosta lämpötilojen ja symbolien kera.
   Sademäärän ja lämpötilan on oltava helposti luettavissa.
   `
 }
@@ -87,7 +88,8 @@ export const generatePrompt = async () => {
   const prompt = `
     Luo vaakasuuntainen, posterimainen infograafinen näkymä, joka henkii 1950-luvun puolivälin modernia tyyliä (Mid-Century Modern).
     Inspiraationa voivat toimia aikakauden elokuva- ja matkailujulisteet, mainokset tai aikakauslehtien kannet.
-    Korosta geometrisiä muotoja, rohkeaa, ajanmukaista typografiaa (esim. sans-serif-fontit) ja muita tyylin tunnusomaisia design-elementtejä, kuten orgaanisia muotoja, kirkkaita kontrasteja ja atomic age -henkistä kuvakieltä (esim. tyyliteltyjä atomeja, satelliitteja tai tähtikuvioita).
+    Korosta geometrisiä muotoja, rohkeaa, ajanmukaista typografiaa (esim. sans-serif-fontit) ja muita tyylin tunnusomaisia design-elementtejä,
+    kuten orgaanisia muotoja, kirkkaita kontrasteja ja atomic age -henkistä kuvakieltä.
     
     Teksti ja asettelu:
 
