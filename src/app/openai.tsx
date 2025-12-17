@@ -29,7 +29,7 @@ export const generateImage = async () => {
     const openai = await initOpenAI();
 
     const response = await openai?.images.generate({
-      model: 'gpt-image-1',
+      model: 'gpt-image-1.5',
       prompt,
       background: 'opaque',
       output_format: 'png',
