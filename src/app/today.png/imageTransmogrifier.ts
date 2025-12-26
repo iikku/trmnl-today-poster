@@ -22,10 +22,26 @@ export const transmogrify = async (image: string) => {
     const conversionToTwoBitImage = true;
     if (!conversionToTwoBitImage) {
       // convert to 1 bit
+      const colormap = join(tmpdir(), "colormap-1bit.png")
+
       await new Promise<void>((resolve, reject) =>
         execFile(
           "magick",
-          [inputFile, "-resize", "800x480", "-gravity", "center", "-extent", "800x480", "-background", "white", "-monochrome", "-colors", "2", "-depth", "1", "-strip", "png:" + outputFile],
+          ["-size", "2x1", "xc:#000000", "xc:#ffffff", "+append", "-type", "Palette", colormap],
+          (err) =>
+            err ? reject(err) : resolve()
+        )
+      )
+
+      await new Promise<void>((resolve, reject) =>
+        execFile(
+          "magick",
+          [inputFile,
+            "(", "+clone", "-resize", "800x480^", "-gravity", "center", "-extent", "800x480", "-blur", "0x15", ")",
+            "-resize", "800x480", "-swap", "0,1",
+            "-gravity", "center", "-compose", "over", "-composite",
+            "-dither", "FloydSteinberg", "-remap", colormap, "-define", "png:bit-depth=1", "-define", "png:color-type=0",
+            outputFile],
           (err) =>
             err ? reject(err) : resolve()
         )
@@ -51,7 +67,8 @@ export const transmogrify = async (image: string) => {
             "(", "+clone", "-resize", "800x480^", "-gravity", "center", "-extent", "800x480", "-blur", "0x15", ")",
             "-resize", "800x480", "-swap", "0,1",
             "-gravity", "center", "-compose", "over", "-composite",
-            "-dither", "FloydSteinberg", "-remap", colormap, "-define", "png:bit-depth=2", "-define", "png:color-type=0", outputFile],
+            "-dither", "FloydSteinberg", "-remap", colormap, "-define", "png:bit-depth=2", "-define", "png:color-type=0",
+            outputFile],
           (err) =>
             err ? reject(err) : resolve()
         )
