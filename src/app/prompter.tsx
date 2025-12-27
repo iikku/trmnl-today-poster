@@ -89,11 +89,11 @@ export const generatePrompt = async () => {
     Luo vaakasuuntainen, posterimainen infograafinen näkymä, joka henkii 1950-luvun puolivälin modernia tyyliä (Mid-Century Modern).
     Inspiraationa voivat toimia aikakauden elokuva- ja matkailujulisteet, mainokset tai aikakauslehtien kannet.
     Korosta geometrisiä muotoja, rohkeaa, ajanmukaista typografiaa (esim. sans-serif-fontit) ja muita tyylin tunnusomaisia design-elementtejä,
-    kuten orgaanisia muotoja, kirkkaita kontrasteja ja atomic age -henkistä kuvakieltä.
+    kuten orgaanisia muotoja, voimakkaita kontrasteja ja atomic age -henkistä kuvakieltä.
     
     Teksti ja asettelu:
 
-    Kaikki teksti julisteessa tulee olla suomeksi.
+    Kaikki teksti julisteessa tulee olla suomeksi. Tekstin tulee olla erityisen hyvin luettavissa eli ainakin selkeä kontrasti suhteessa taustaan.
 
     - Otsikko (Yläreunassa, keskitetty tai linjattu tyylikkäästi):
 
