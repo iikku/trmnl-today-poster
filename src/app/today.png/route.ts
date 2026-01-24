@@ -12,7 +12,7 @@ export const GET = async (
 
   if (suitedForTRMNL) {
     return new NextResponse(
-      suitedForTRMNL,
+      new Uint8Array(suitedForTRMNL),
       {
         status: 200,
         headers: {
