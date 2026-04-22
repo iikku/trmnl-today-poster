@@ -59,6 +59,7 @@ const readableWeather = async () => {
   4. Yö: sään symboli: ${weather.night.symbol}, lämpötila: ${weather.night.temperature} astetta, sademäärä: ${weather.night.rain} mm
 
   Esitä sää selkeästi ikään kuin osana 50-luvun mainosta lämpötilojen ja symbolien kera.
+  Tee symboleista elävän ja leikkisän näköisiä, ei vain tiukkaa infografiikkaa.
   Sademäärän ja lämpötilan on oltava helposti luettavissa.
   `
 }
