@@ -45,11 +45,17 @@ const readableWeather = async () => {
   return `
   - Sääennuste (oikeassa osiossa):
     
-  Sääennuste koostuu tasan neljästä ajankohdasta: aamu, päivä, ilta ja yö. Graafisesti ennuste koostuu tasan neljästä erillisestä ruudusta, joilla jokaisella on oma otsikkonsa: aamu, päivä, ilta tai yö.
-  Jokaisessa ruudussa tulee näkyä symboli säätilalle, lämpötila asteina ja sademäärä millimetreinä.
-  Voit lisätä jokaiselle neljälle ruudulle myös ajankohdan nimen: aamu, päivä, ilta tai yö.
-  Sijoita nämä tismalleen neljä sääruutua vierekkäin, allekkain tai selkeästi erotettuna 2x2-ruudukoksi, jotta kaikki näkyvät.
-  Älä jätä yhtäkään ajankohtaa pois. Laita aamun jälkeen päivä, päivän jälkeen ilta ja illan jälkeen yö.
+  Sääennuste:
+  - Sisältää tasan neljä osaa: Aamu, Päivä, Ilta, Yö
+  - Jokaisessa:
+    - sään symboli
+    - lämpötila
+    - sademäärä
+  - Tiedot annetaan erikseen ja ne tulee esittää täsmälleen
+
+  - Esitä nämä neljä osaa selkeästi erillisinä, mutta EI pakotetusti täydelliseen ruudukkoon
+  - Ikonien tulee olla yksinkertaisia, paksuviivaisia ja tunnistettavia myös ditheröitynä
+  - Vältä pieniä yksityiskohtia
 
   Näytä sääennusteen tiedot seuraavassa järjestyksessä:
   
@@ -72,11 +78,11 @@ const specialDayPrompt = (special: string | undefined) => {
 const eventPrompt = (eventList: string | null) => {
   if (eventList == null) return "";
   return `
-    - Kalenteritapahtumat (Vasemmassa kolmanneksessa):
+    - Kalenteritapahtumat (Vasemmalla):
     
     ${eventList}
     
-    Tapahtumien asettelu voi olla pysty- tai vaakasuuntainen, riippuen visuaalisesta tasapainosta. Käytä erotteluun esimerkiksi tyyliteltyjä palloja, viivoja tai muita geometrisia elementtejä.
+    Tapahtumien asettelu voi olla pysty- tai vaakasuuntainen, riippuen visuaalisesta tasapainosta.
   `;
 }
 export const generatePrompt = async () => {
@@ -87,18 +93,57 @@ export const generatePrompt = async () => {
   const specialDay = await todaysSpecialDayName();
 
   const prompt = `
-    Luo vaakasuuntainen, posterimainen infograafinen näkymä, joka henkii 1950-luvun puolivälin modernia tyyliä (Mid-Century Modern).
-    Inspiraationa voivat toimia aikakauden elokuva- ja matkailujulisteet, mainokset tai aikakauslehtien kannet.
-    Korosta geometrisiä muotoja, rohkeaa, ajanmukaista typografiaa (esim. sans-serif-fontit) ja muita tyylin tunnusomaisia design-elementtejä,
-    kuten orgaanisia muotoja, voimakkaita kontrasteja ja atomic age -henkistä kuvakieltä.
+  Luo vaakasuuntainen, posterimainen infograafinen näkymä 1950-luvun Mid-Century Modern -tyylissä.
+
+  Tämä kuva tullaan muuntamaan 2-bittiseksi (4 sävyä) harmaasävykuvaksi ja ditheröimään, joten:
+  - Kaikkien elementtien tulee toimia selkeinä myös ilman värejä
+  - Käytä voimakasta vaalean ja tumman kontrastia (luminanssikontrasti)
+  - Vältä hienovaraisia sävyeroja ja ohuita yksityiskohtia
+  - Suosi selkeitä siluetteja ja suuria yhtenäisiä pintoja
+  - Kaikkien tekstien tulee olla erittäin helposti luettavissa myös matalalla resoluutiolla
+
+  Tyyli:
+  - Mid-Century Modern, inspiroitunut 1950-luvun julisteista ja mainosgrafiikasta
+  - Geometriset muodot, orgaaniset muodot ja atomic age -henkiset elementit
+  - Kuvituksellinen ote: tämä EI ole moderni dashboard tai UI, vaan kuvitettu juliste
+
+  Sommittelu:
+  - Epäsymmetrinen mutta tasapainoinen asettelu (asymmetrical balance)
+  - Elementit voivat osittain mennä päällekkäin (layering)
+  - Käytä mittakaavakontrastia: yksi selkeä pääelementti (hero)
+  - Jätä tarkoituksellista negatiivista tilaa
+  - Vältä täydellistä ruudukkoa
     
-    Teksti ja asettelu:
+  KALENTERITAPAHTUMAT (SYÖTE):
+    Saat listan tapahtumia seuraavassa muodossa:
 
-    Kaikki teksti julisteessa tulee olla suomeksi. Tekstin tulee olla erityisen hyvin luettavissa eli ainakin selkeä kontrasti suhteessa taustaan.
+    "Tänään": "…",
+    "<päivämäärä>": "…",
+    "<päivämäärä>": "…"
 
-    - Otsikko (Yläreunassa, keskitetty tai linjattu tyylikkäästi):
+    Tulkitse nämä näin:
+    - Kaikki avain–arvo-parit ovat erillisiä tapahtumia
+    - Avain = päivämäärä tai päivän nimi, kuten sana “Tänään”
+    - Arvo = tapahtuman nimi
 
-    "${toTitle(new Date())}" (Käytä rohkeaa, 50-luvun tyylistä otsikkofonttia).
+    TÄRKEÄ SÄÄNTÖ (HERO):
+    - Jos ensimmäisen tapahtuman avain on “Tänään”, se on julisteen pääelementti (hero)
+    - Jos ensimmäisen tapahtuman avain on jotain muuta kuin “Tänään”, selkeää pääelementtiä ei ole, vaan kaikki tapahtumat ovat samanarvoisia
+    - Jos tänään on tapahtuma, esitä tämä tapahtuma visuaalisesti selvästi suurimpana elementtinä
+    - Sen tulee hallita sommittelua enemmän kuin mikään muu sisältö
+    - Voit käyttää tapahtuman teemaa visuaalisena motiivina (esim. objektit, symbolit, kuvitus)
+    - Muut tapahtumat ovat selkeästi toissijaisia
+
+    Teksti ja kieli:
+    - Kaikki teksti suomeksi
+    - Käytä selkeitä, paksuja sans-serif-tyylisiä kirjaimia
+    - Vältä ohuita viivoja ja liian koristeellisia fontteja
+    - Hyödynnä typografista kontrastia (koko, paino, asettelu)
+    - Teksti voi mennä osittain kuvien päälle (overlay)
+    
+    - Otsikko (Yläreunassa):
+
+    "${toTitle(new Date())}"
 
     ${eventPrompt(eventList)}
     ${specialDayPrompt(specialDay)}
@@ -108,9 +153,10 @@ export const generatePrompt = async () => {
     - Teema ja koristelu:
     Koita tunnistaa viikonpäivästä ${eventList ? ", kalenterin tapahtumista" : ""} ${specialDay ? ", juhlapäivästä" : ""} ja sääennusteesta jokin yhtenäinen teema tai useampi erillistä teemaa ja koristele näkymää kevyesti sen mukaisesti.
 
-    Tavoite: Luo visuaalisesti houkutteleva ja selkeä infograafi, joka yhdistää Mid-Century Modern -estetiikan nykypäivän tiedot saumattomasti.
-  `;
-  log("response", prompt);
+    Tavoite:
+    Luo visuaalisesti kiinnostava, dynaaminen ja selkeä 1950-luvun juliste, joka säilyttää luettavuutensa ja visuaalisen iskevyyden myös 2-bittiseksi ditheröitynä harmaasävykuvana.
+    `;
+  log("Created the following prompt:\n", prompt);
 
   return prompt;
 };
