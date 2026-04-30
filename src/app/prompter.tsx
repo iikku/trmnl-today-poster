@@ -30,15 +30,89 @@ const toReadableDate = (date: string) => {
 
 const toTitle = (date: Date) => format(date, 'cccc d. MMMM', { locale: fi });
 
-const readableEvents = async () => {
-  const events = await getEvents();
-  if (events.length == 0) {
-    return null;
-  }
+type NormalizedEvent = {
+  label: string;
+  title: string;
+  isToday: boolean;
+};
+
+const normalizeEvents = (events: any[]): NormalizedEvent[] => {
   return events
-    .map(e => "\"" + toReadableDate(e.start?.date || e.start?.dateTime || "") + "\": \"" + e.summary + "\"")
-    .join(",\n");
-}
+    .map(e => {
+      const raw = e.start?.date || e.start?.dateTime || "";
+      const label = toReadableDate(raw);
+
+      return {
+        label,
+        title: e.summary,
+        isToday: label === "Tänään"
+      };
+    })
+    .filter(e => e.label && e.title);
+};
+
+const extractHero = (events: NormalizedEvent[]) => {
+  return events.find(e => e.isToday) || null;
+};
+
+const buildEventDataBlock = (
+  events: NormalizedEvent[],
+  hero: NormalizedEvent | null
+  ) => {
+  const list = events
+    .map(e => `- ${e.label}: ${e.title}`)
+    .join("\n");
+
+  if (hero) {
+    return `
+    KALENTERITAPAHTUMAT:
+
+    PÄÄTAPAHTUMA:
+    - ${hero.label}: ${hero.title}
+
+    MUUT TAPAHTUMAT:
+    ${events
+      .filter(e => !e.isToday)
+      .map(e => `- ${e.label}: ${e.title}`)
+      .join("\n")}
+    `;
+  }
+
+  return `
+    KALENTERITAPAHTUMAT:
+
+    TAPAHTUMAT:
+    ${list}
+
+    HUOM:
+    - Yhtään tapahtumaa ei ole merkitty päätapahtumaksi
+    - Kaikki tapahtumat ovat samanarvoisia
+  `;
+};
+
+const eventPrompt = (eventBlock: string, hasHero: boolean) => {
+  const heroInstructions = hasHero
+    ? `
+    PÄÄTAPAHTUMAN ESITYS:
+    - Esitä päätapahtuma selkeästi suurimpana visuaalisena elementtinä
+    - Sen tulee hallita sommittelua
+    - Voit käyttää siihen liittyvää kuvitusta
+    - Muut tapahtumat ovat selkeästi pienempiä
+    `
+        : `
+    TAPAHTUMIEN ESITYS:
+    - Älä korosta mitään tapahtumaa muita enemmän
+    - Kaikki tapahtumat tulee esittää visuaalisesti samanarvoisina
+  `;
+
+  return `
+    ${eventBlock}
+
+    ${heroInstructions}
+
+    - Sijoita tapahtumat julisteen vasemmalle puolelle
+  `;
+};
 
 const readableWeather = async () => {
   const weather = await getCurrentWeather();
@@ -75,74 +149,37 @@ const specialDayPrompt = (special: string | undefined) => {
   return "Tänään on " + special + ", joka on erityinen juhlapäivä. Lisää siihen liittyvä juhlatoivotus johonkin päin julistetta.";
 }
 
-const eventPrompt = (eventList: string | null) => {
-  if (eventList == null) return "";
-  return `
-    KALENTERITAPAHTUMAT (SYÖTE):
-    Saat listan tapahtumia seuraavassa muodossa:
-
-    "<päivämäärä>": "…",
-    "<päivämäärä>": "…",
-    "<päivämäärä>": "…"
-
-    Tulkitse nämä näin:
-    - Kaikki avain–arvo-parit ovat erillisiä tapahtumia
-    - Avain = päivämäärä tai joskus päivän nimi, kuten sana “Tänään” tai "Huomenna"
-    - Arvo = tapahtuman nimi
-    
-    TÄRKEÄ SÄÄNTÖ (HERO):
-    - Etsi tapahtuma, jonka avain on “Tänään”
-    - Jos sellainen on olemassa, se on julisteen pääelementti (hero)
-    - ÄLÄ päättele heroa pelkän listan järjestyksen perusteella
-
-    - Jos mitään “Tänään”-tapahtumaa EI ole:
-      - ÄLÄ valitse mitään yksittäistä tapahtumaa pääelementiksi
-      - ÄLÄ korosta ensimmäistä tai mitään muuta tapahtumaa muita enemmän
-      - Kaikki tapahtumat tulee esittää visuaalisesti samanarvoisina
-
-    - Jos ensimmäisen tapahtuman avain on “Tänään”, se on julisteen pääelementti (hero)
-    - Jos ensimmäisen tapahtuman avain on jotain muuta kuin “Tänään”, selkeää pääelementtiä ei ole, vaan kaikki tapahtumat ovat samanarvoisia
-    - Jos tänään on tapahtuma, esitä tämä tapahtuma visuaalisesti selvästi suurimpana elementtinä
-    - Sen tulee hallita sommittelua enemmän kuin mikään muu sisältö
-    - Voit käyttää tapahtuman teemaa visuaalisena motiivina (esim. objektit, symbolit, kuvitus)
-    - Muut tapahtumat ovat selkeästi toissijaisia
-
-    - Kalenteritapahtumat (Vasemmalla):
-    
-    ${eventList}
-  `;
-}
-
 export const generatePrompt = async () => {
-  log("generatePrompt");
+  log("Generating prompt");
+  const rawEvents = await getEvents();
 
-  const eventList = await readableEvents();
-  const currentWeather = await readableWeather();
+  const normalized = normalizeEvents(rawEvents);
+  const hero = extractHero(normalized);
+
+  const eventBlock = buildEventDataBlock(normalized, hero);
+  const eventsSection = eventPrompt(eventBlock, !!hero);
+
+  const weather = await readableWeather();
   const specialDay = await todaysSpecialDayName();
 
   const prompt = `
-  Luo vaakasuuntainen, posterimainen infograafinen näkymä 1950-luvun Mid-Century Modern -tyylissä.
+    Luo vaakasuuntainen, posterimainen infograafinen näkymä 1950-luvun Mid-Century Modern -tyylissä.
+    Tämä kuva tullaan muuntamaan 2-bittiseksi (4 sävyä) harmaasävykuvaksi ja ditheröimään, joten:
+    - Kaikkien elementtien tulee toimia selkeinä myös ilman värejä
+    - Käytä voimakasta vaalean ja tumman kontrastia (luminanssikontrasti)
+    - Vältä hienovaraisia sävyeroja ja ohuita yksityiskohtia
+    - Suosi selkeitä siluetteja ja suuria yhtenäisiä pintoja
+    - Kaikkien tekstien tulee olla erittäin helposti luettavissa myös matalalla resoluutiolla
 
-  Tämä kuva tullaan muuntamaan 2-bittiseksi (4 sävyä) harmaasävykuvaksi ja ditheröimään, joten:
-  - Kaikkien elementtien tulee toimia selkeinä myös ilman värejä
-  - Käytä voimakasta vaalean ja tumman kontrastia (luminanssikontrasti)
-  - Vältä hienovaraisia sävyeroja ja ohuita yksityiskohtia
-  - Suosi selkeitä siluetteja ja suuria yhtenäisiä pintoja
-  - Kaikkien tekstien tulee olla erittäin helposti luettavissa myös matalalla resoluutiolla
+    Tyyli:
+    - Mid-Century Modern, inspiroitunut 1950-luvun julisteista ja mainosgrafiikasta
+    - Geometriset muodot, orgaaniset muodot ja atomic age -henkiset elementit
+    - Kuvituksellinen ote: tämä EI ole moderni dashboard tai UI, vaan kuvitettu juliste
 
-  Tyyli:
-  - Mid-Century Modern, inspiroitunut 1950-luvun julisteista ja mainosgrafiikasta
-  - Geometriset muodot, orgaaniset muodot ja atomic age -henkiset elementit
-  - Kuvituksellinen ote: tämä EI ole moderni dashboard tai UI, vaan kuvitettu juliste
+    Sommittelu:
+    - Epäsymmetrinen mutta tasapainoinen
 
-  Sommittelu:
-  - Epäsymmetrinen mutta tasapainoinen asettelu (asymmetrical balance)
-  - Elementit voivat osittain mennä päällekkäin (layering)
-  - Käytä mittakaavakontrastia: yksi selkeä pääelementti (hero)
-  - Jätä tarkoituksellista negatiivista tilaa
-  - Vältä täydellistä ruudukkoa
-
-    ${eventPrompt(eventList)}
+    ${eventsSection}
 
     Teksti ja kieli:
     - Kaikki teksti suomeksi
@@ -151,20 +188,20 @@ export const generatePrompt = async () => {
     - Hyödynnä typografista kontrastia (koko, paino, asettelu)
     - Teksti voi mennä osittain kuvien päälle (overlay)
     
-    - Otsikko (Yläreunassa):
-
+    Otsikko:
     "${toTitle(new Date())}"
 
     ${specialDayPrompt(specialDay)}
-    
-    ${currentWeather}
 
-    - Teema ja koristelu:
-    Koita tunnistaa viikonpäivästä ${eventList ? ", kalenterin tapahtumista" : ""} ${specialDay ? ", juhlapäivästä" : ""} ja sääennusteesta jokin yhtenäinen teema tai useampi erillistä teemaa ja koristele näkymää sen mukaisesti.
+    ${weather}
+
+    Teema ja koristelu:
+    - Koita tunnistaa viikonpäivästä ${rawEvents ? ", kalenterin tapahtumista" : ""} ${specialDay ? ", juhlapäivästä" : ""} ja sääennusteesta jokin yhtenäinen teema tai useampi erillistä teemaa ja koristele näkymää sen mukaisesti.
 
     Tavoite:
-    Luo visuaalisesti kiinnostava, dynaaminen ja selkeä 1950-luvun juliste, joka säilyttää luettavuutensa ja visuaalisen iskevyyden myös 2-bittiseksi ditheröitynä harmaasävykuvana.
-    `;
+    - Selkeä ja visuaalisesti kiinnostava 1950-luvun juliste, joka toimii 2-bittisenä.
+  `;
+
   log("Created the following prompt:\n", prompt);
 
   return prompt;
