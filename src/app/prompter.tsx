@@ -78,13 +78,41 @@ const specialDayPrompt = (special: string | undefined) => {
 const eventPrompt = (eventList: string | null) => {
   if (eventList == null) return "";
   return `
+    KALENTERITAPAHTUMAT (SYÖTE):
+    Saat listan tapahtumia seuraavassa muodossa:
+
+    "<päivämäärä>": "…",
+    "<päivämäärä>": "…",
+    "<päivämäärä>": "…"
+
+    Tulkitse nämä näin:
+    - Kaikki avain–arvo-parit ovat erillisiä tapahtumia
+    - Avain = päivämäärä tai joskus päivän nimi, kuten sana “Tänään” tai "Huomenna"
+    - Arvo = tapahtuman nimi
+    
+    TÄRKEÄ SÄÄNTÖ (HERO):
+    - Etsi tapahtuma, jonka avain on “Tänään”
+    - Jos sellainen on olemassa, se on julisteen pääelementti (hero)
+    - ÄLÄ päättele heroa pelkän listan järjestyksen perusteella
+
+    - Jos mitään “Tänään”-tapahtumaa EI ole:
+      - ÄLÄ valitse mitään yksittäistä tapahtumaa pääelementiksi
+      - ÄLÄ korosta ensimmäistä tai mitään muuta tapahtumaa muita enemmän
+      - Kaikki tapahtumat tulee esittää visuaalisesti samanarvoisina
+
+    - Jos ensimmäisen tapahtuman avain on “Tänään”, se on julisteen pääelementti (hero)
+    - Jos ensimmäisen tapahtuman avain on jotain muuta kuin “Tänään”, selkeää pääelementtiä ei ole, vaan kaikki tapahtumat ovat samanarvoisia
+    - Jos tänään on tapahtuma, esitä tämä tapahtuma visuaalisesti selvästi suurimpana elementtinä
+    - Sen tulee hallita sommittelua enemmän kuin mikään muu sisältö
+    - Voit käyttää tapahtuman teemaa visuaalisena motiivina (esim. objektit, symbolit, kuvitus)
+    - Muut tapahtumat ovat selkeästi toissijaisia
+
     - Kalenteritapahtumat (Vasemmalla):
     
     ${eventList}
-    
-    Tapahtumien asettelu voi olla pysty- tai vaakasuuntainen, riippuen visuaalisesta tasapainosta.
   `;
 }
+
 export const generatePrompt = async () => {
   log("generatePrompt");
 
@@ -113,26 +141,8 @@ export const generatePrompt = async () => {
   - Käytä mittakaavakontrastia: yksi selkeä pääelementti (hero)
   - Jätä tarkoituksellista negatiivista tilaa
   - Vältä täydellistä ruudukkoa
-    
-  KALENTERITAPAHTUMAT (SYÖTE):
-    Saat listan tapahtumia seuraavassa muodossa:
 
-    "Tänään": "…",
-    "<päivämäärä>": "…",
-    "<päivämäärä>": "…"
-
-    Tulkitse nämä näin:
-    - Kaikki avain–arvo-parit ovat erillisiä tapahtumia
-    - Avain = päivämäärä tai päivän nimi, kuten sana “Tänään”
-    - Arvo = tapahtuman nimi
-
-    TÄRKEÄ SÄÄNTÖ (HERO):
-    - Jos ensimmäisen tapahtuman avain on “Tänään”, se on julisteen pääelementti (hero)
-    - Jos ensimmäisen tapahtuman avain on jotain muuta kuin “Tänään”, selkeää pääelementtiä ei ole, vaan kaikki tapahtumat ovat samanarvoisia
-    - Jos tänään on tapahtuma, esitä tämä tapahtuma visuaalisesti selvästi suurimpana elementtinä
-    - Sen tulee hallita sommittelua enemmän kuin mikään muu sisältö
-    - Voit käyttää tapahtuman teemaa visuaalisena motiivina (esim. objektit, symbolit, kuvitus)
-    - Muut tapahtumat ovat selkeästi toissijaisia
+    ${eventPrompt(eventList)}
 
     Teksti ja kieli:
     - Kaikki teksti suomeksi
@@ -145,13 +155,12 @@ export const generatePrompt = async () => {
 
     "${toTitle(new Date())}"
 
-    ${eventPrompt(eventList)}
     ${specialDayPrompt(specialDay)}
     
     ${currentWeather}
 
     - Teema ja koristelu:
-    Koita tunnistaa viikonpäivästä ${eventList ? ", kalenterin tapahtumista" : ""} ${specialDay ? ", juhlapäivästä" : ""} ja sääennusteesta jokin yhtenäinen teema tai useampi erillistä teemaa ja koristele näkymää kevyesti sen mukaisesti.
+    Koita tunnistaa viikonpäivästä ${eventList ? ", kalenterin tapahtumista" : ""} ${specialDay ? ", juhlapäivästä" : ""} ja sääennusteesta jokin yhtenäinen teema tai useampi erillistä teemaa ja koristele näkymää sen mukaisesti.
 
     Tavoite:
     Luo visuaalisesti kiinnostava, dynaaminen ja selkeä 1950-luvun juliste, joka säilyttää luettavuutensa ja visuaalisen iskevyyden myös 2-bittiseksi ditheröitynä harmaasävykuvana.
