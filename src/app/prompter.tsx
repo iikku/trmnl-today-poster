@@ -51,38 +51,32 @@ const normalizeEvents = (events: any[]): NormalizedEvent[] => {
     .filter(e => e.label && e.title);
 };
 
-const extractHero = (events: NormalizedEvent[]) => {
-  return events.find(e => e.isToday) || null;
+const extractTodayEvents = (events: NormalizedEvent[]) => {
+  return events.filter(e => e.isToday);
 };
 
 const buildEventDataBlock = (
   events: NormalizedEvent[],
-  hero: NormalizedEvent | null
-  ) => {
-  const list = events
-    .map(e => `- ${e.label}: ${e.title}`)
-    .join("\n");
+  todayEvents: NormalizedEvent[]
+) => {
+  const otherEvents = events.filter(e => !e.isToday);
 
-  if (hero) {
+  if (todayEvents.length > 0) {
     return `
-    KALENTERITAPAHTUMAT:
-
-    PÄÄTAPAHTUMA:
-    - ${hero.label}: ${hero.title}
-
+    PÄÄTAPAHTUMAT:
+    ${todayEvents.map(e => `- ${e.label}: ${e.title}`).join("\n")}
+    
     MUUT TAPAHTUMAT:
-    ${events
-      .filter(e => !e.isToday)
+    ${otherEvents
       .map(e => `- ${e.label}: ${e.title}`)
       .join("\n")}
     `;
   }
 
   return `
-    KALENTERITAPAHTUMAT:
-
-    TAPAHTUMAT:
-    ${list}
+    ${events
+      .map(e => `- ${e.label}: ${e.title}`)
+      .join("\n")}
 
     HUOM:
     - Yhtään tapahtumaa ei ole merkitty päätapahtumaksi
@@ -98,19 +92,48 @@ const eventPrompt = (eventBlock: string, hasHero: boolean) => {
     - Sen tulee hallita sommittelua
     - Voit käyttää siihen liittyvää kuvitusta
     - Muut tapahtumat ovat selkeästi pienempiä
+
+    MUIDEN TAPAHTUMIEN ESITYS:
+    - Esitä muut tapahtumat pienempinä elementteinä
+    - Saman päivän tapahtumat voivat olla saman päiväotsikon alla
+    - Merkitse tapahtumien ajankohta ja nimi selkeästi
     `
-        : `
-    TAPAHTUMIEN ESITYS:
-    - Älä korosta mitään tapahtumaa muita enemmän
-    - Kaikki tapahtumat tulee esittää visuaalisesti samanarvoisina
+    : `
+    TAPAHTUMIEN ESITYS
+    - Merkitse tapahtumien ajankohta ja nimi selkeästi
+    - Saman päivän tapahtumat voivat olla saman päiväotsikon alla
+    - Yhtään tapahtumaa ei saa esittää suurena otsikkona tai pääelementtinä
+    - Yksikään tapahtuman nimi ei saa olla merkittävästi suurempi kuin muut
+    - Kaikki tapahtumat tulee esittää pienenä tai keskikokoisena listana
+
+    VISUAALINEN HIERARKIA:
+    - Julisteen suurin elementti EI ole tapahtuma
+    - Suurin elementti voi olla esimerkiksi:
+      - päivämäärä (otsikko), TAI
+      - abstrakti kuvitus, TAI
+      - sääkuvitus
+    - Älä käytä suurta typografista pääotsikkoa tapahtumille
+    - Anna tilaa koko sommitelman muille elementeille
+
+    TUNNELMA:
+    - Tapahtumat ovat tulevia → luo odottava, kevyt tunnelma
+    - Esitä tapahtumat ikään kuin tulevina muistutuksina, ei pääviestinä
+    - Vältä huomiota huutavaa typografiaa tapahtumien kohdalla
+    - Älä otsikoi tapahtumia yhteisellä otsikolla "Tapahtumat" tai "Tulevat tapahtumat"
   `;
 
   return `
+    KALENTERITAPAHTUMAT:
+
+    Kullakin tapahtumalla antamassani listauksessa on päivän ihmisluettava nimi ja tapahtuman nimi. Esitä molemmat.
+    Jos päivän nimi on huomenna tai ylihuomenna, älä esitä viikonpäivää tai päivämäärää vaan ihmisluettava nimi.
+    Seuraavaksi listaan tapahtumat:
+
     ${eventBlock}
 
     ${heroInstructions}
 
-    - Sijoita tapahtumat julisteen vasemmalle puolelle
+    - Sijoita tapahtumat julisteen vasempaan reunaan
   `;
 };
 
@@ -154,10 +177,10 @@ export const generatePrompt = async () => {
   const rawEvents = await getEvents();
 
   const normalized = normalizeEvents(rawEvents);
-  const hero = extractHero(normalized);
+  const todayEvents = extractTodayEvents(normalized);
 
-  const eventBlock = buildEventDataBlock(normalized, hero);
-  const eventsSection = eventPrompt(eventBlock, !!hero);
+  const eventBlock = buildEventDataBlock(normalized, todayEvents);
+  const eventsSection = eventPrompt(eventBlock, todayEvents.length > 0);
 
   const weather = await readableWeather();
   const specialDay = await todaysSpecialDayName();
