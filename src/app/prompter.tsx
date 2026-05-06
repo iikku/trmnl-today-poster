@@ -34,21 +34,62 @@ type NormalizedEvent = {
   label: string;
   title: string;
   isToday: boolean;
+  date: Date;
 };
 
 const normalizeEvents = (events: any[]): NormalizedEvent[] => {
   return events
     .map(e => {
       const raw = e.start?.date || e.start?.dateTime || "";
+      const date = parseISO(raw);
       const label = toReadableDate(raw);
 
       return {
         label,
         title: e.summary,
-        isToday: label === "Tänään"
+        isToday: label === "Tänään",
+        date
       };
     })
-    .filter(e => e.label && e.title);
+    .filter(e => e.label && e.title && e.date);
+};
+
+const getDayPriority = (label: string) => {
+  if (label === "Tänään") return 0;
+  if (label === "Huomenna") return 1;
+  if (label === "Ylihuomenna") return 2;
+  return 3;
+};
+
+const groupEventsByDay = (events: NormalizedEvent[]) => {
+  const groups: Record<string, NormalizedEvent[]> = {};
+
+  for (const e of events) {
+    if (!groups[e.label]) {
+      groups[e.label] = [];
+    }
+    groups[e.label].push(e);
+  }
+
+  // Muuta arrayksi + järjestä
+  return Object.entries(groups)
+    .map(([label, items]) => {
+      // järjestä saman päivän sisällä kellon mukaan
+      const sortedItems = items.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+      return {
+        label,
+        items: sortedItems,
+        date: sortedItems[0].date
+      };
+    })
+    .sort((a, b) => {
+      const priorityDiff = getDayPriority(a.label) - getDayPriority(b.label);
+      if (priorityDiff !== 0) return priorityDiff;
+
+      // fallback: oikea päivämäärä
+      return a.date.getTime() - b.date.getTime();
+    });
 };
 
 const extractTodayEvents = (events: NormalizedEvent[]) => {
@@ -59,28 +100,29 @@ const buildEventDataBlock = (
   events: NormalizedEvent[],
   todayEvents: NormalizedEvent[]
 ) => {
-  const otherEvents = events.filter(e => !e.isToday);
+  const groups = groupEventsByDay(events);
+
+  const renderGroup = (label: string, items: NormalizedEvent[]) =>
+    `${label}:\n${items.map(e => `  - ${e.title}`).join("\n")}`;
 
   if (todayEvents.length > 0) {
+    const otherGroups = groups.filter(g => g.label !== "Tänään");
+
     return `
-    PÄÄTAPAHTUMAT:
-    ${todayEvents.map(e => `- ${e.label}: ${e.title}`).join("\n")}
-    
+    PÄIVÄN TAPAHTUMAT:
+    ${todayEvents.map(e => `- ${e.title}`).join("\n")}
+
     MUUT TAPAHTUMAT:
-    ${otherEvents
-      .map(e => `- ${e.label}: ${e.title}`)
-      .join("\n")}
+    ${otherGroups.map(g => renderGroup(g.label, g.items)).join("\n\n")}
     `;
   }
 
   return `
-    ${events
-      .map(e => `- ${e.label}: ${e.title}`)
-      .join("\n")}
+    ${groups.map(g => renderGroup(g.label, g.items)).join("\n\n")}
 
     HUOM:
-    - Yhtään tapahtumaa ei ole merkitty päätapahtumaksi
-    - Kaikki tapahtumat ovat samanarvoisia
+    - Yhtään tapahtumaa ei ole tänään
+    - Kaikki tapahtumat ovat tulevia
   `;
 };
 
@@ -95,16 +137,19 @@ const eventPrompt = (eventBlock: string, hasHero: boolean) => {
 
     MUIDEN TAPAHTUMIEN ESITYS:
     - Esitä muut tapahtumat pienempinä elementteinä
-    - Saman päivän tapahtumat voivat olla saman päiväotsikon alla
+    - Tapahtumat on jo ryhmitelty päivän mukaan
+    - Jokainen päivä on otsikko, jonka alla sen tapahtumat
+    - Älä toista päivää jokaisen tapahtuman kohdalla
     - Merkitse tapahtumien ajankohta ja nimi selkeästi
     `
     : `
     TAPAHTUMIEN ESITYS
     - Merkitse tapahtumien ajankohta ja nimi selkeästi
-    - Saman päivän tapahtumat voivat olla saman päiväotsikon alla
+    - Tapahtumat on jo ryhmitelty päivän mukaan
+    - Jokainen päivä on otsikko, jonka alla sen tapahtumat
+    - Älä toista päivää jokaisen tapahtuman kohdalla
     - Yhtään tapahtumaa ei saa esittää suurena otsikkona tai pääelementtinä
     - Yksikään tapahtuman nimi ei saa olla merkittävästi suurempi kuin muut
-    - Kaikki tapahtumat tulee esittää pienenä tai keskikokoisena listana
 
     VISUAALINEN HIERARKIA:
     - Julisteen suurin elementti EI ole tapahtuma
@@ -133,7 +178,43 @@ const eventPrompt = (eventBlock: string, hasHero: boolean) => {
 
     ${heroInstructions}
 
-    - Sijoita tapahtumat julisteen vasempaan reunaan
+    VISUAALINEN SOMMITTELU (TÄRKEÄ):
+
+    - Älä esitä tapahtumia perinteisenä listana tai bullet point -rakenteena
+    - Vältä selkeää “rivi rivin alla” -asettelua
+    
+    - Saman päivän tapahtumat muodostavat visuaalisen ryhmän, EI listaa
+    - Ryhmä voi olla esimerkiksi:
+      - kompakti tekstiblokki
+      - kaareva tai epäsymmetrinen sommitelma
+      - elementtien ympärille aseteltu teksti
+      - pieni klusteri, jossa elementit eivät ole täysin suorassa linjassa
+    
+    - Päiväotsikko voi olla:
+      - hieman sivussa
+      - kevyesti kallistettu
+      - tai visuaalisesti irrotettu tapahtumista
+    
+    - Tapahtumien nimet voivat:
+      - olla hieman eri kohdissa (ei täydellisesti linjassa)
+      - seurata muotoa tai kuvitusta
+      - olla osittain päällekkäin kuvituksen kanssa
+    
+    - Käytä Mid-Century Modern -julisteille tyypillistä rytmiä:
+      - epäsäännöllinen mutta tasapainoinen sijoittelu
+      - eri kokoisia elementtejä
+      - ei täydellistä gridiä
+
+    - Tämä EI ole käyttöliittymä, aikataulu tai lista
+    - Tämä on kuvitettu juliste, jossa informaatio on sommiteltu visuaalisesti
+
+    TYPOGRAFINEN HIERARKIA:
+    - Päiväotsikko on pienempi ja kevyempi kuin tapahtumien nimet
+    - Tapahtuman nimi on suurempi ja visuaalisesti vahvempi
+    - Päivä toimii vain ryhmittävänä elementtinä
+
+    SIJAINTI KOKONAISUUDESSA:
+    - Sijoita tapahtumat julisteen vasemmalle puolelle
   `;
 };
 
@@ -194,12 +275,12 @@ export const generatePrompt = async () => {
     - Suosi selkeitä siluetteja ja suuria yhtenäisiä pintoja
     - Kaikkien tekstien tulee olla erittäin helposti luettavissa myös matalalla resoluutiolla
 
-    Tyyli:
+    TYYLI:
     - Mid-Century Modern, inspiroitunut 1950-luvun julisteista ja mainosgrafiikasta
     - Geometriset muodot, orgaaniset muodot ja atomic age -henkiset elementit
     - Kuvituksellinen ote: tämä EI ole moderni dashboard tai UI, vaan kuvitettu juliste
 
-    Sommittelu:
+    KOKONAISUUDEN SOMMITTELU:
     - Epäsymmetrinen mutta tasapainoinen
 
     ${eventsSection}
