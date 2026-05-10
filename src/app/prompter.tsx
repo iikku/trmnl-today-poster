@@ -109,7 +109,7 @@ const buildEventDataBlock = (
     const otherGroups = groups.filter(g => g.label !== "Tänään");
 
     return `
-    PÄIVÄN TAPAHTUMAT:
+    PÄÄTAPAHTUMAT:
     ${todayEvents.map(e => `- ${e.title}`).join("\n")}
 
     MUUT TAPAHTUMAT:
@@ -129,6 +129,8 @@ const buildEventDataBlock = (
 const eventPrompt = (eventBlock: string, hasHero: boolean) => {
   const heroInstructions = hasHero
     ? `
+    Kalenteritapahtumat näyttävä osio koostuu päätapahtumasta (tänään) ja muista tapahtumista (tulevat).
+
     PÄÄTAPAHTUMAN ESITYS:
     - Esitä päätapahtuma selkeästi suurimpana visuaalisena elementtinä
     - Sen tulee hallita sommittelua
@@ -143,6 +145,8 @@ const eventPrompt = (eventBlock: string, hasHero: boolean) => {
     - Merkitse tapahtumien ajankohta ja nimi selkeästi
     `
     : `
+    Kalenteritapahtumat näyttävä osio koostuu joukosta tulevia tapahtumia.
+
     TAPAHTUMIEN ESITYS
     - Merkitse tapahtumien ajankohta ja nimi selkeästi
     - Tapahtumat on jo ryhmitelty päivän mukaan
@@ -170,13 +174,11 @@ const eventPrompt = (eventBlock: string, hasHero: boolean) => {
   return `
     KALENTERITAPAHTUMAT:
 
-    Kullakin tapahtumalla antamassani listauksessa on päivän ihmisluettava nimi ja tapahtuman nimi. Esitä molemmat.
-    Jos päivän nimi on huomenna tai ylihuomenna, älä esitä viikonpäivää tai päivämäärää vaan ihmisluettava nimi.
+    ${heroInstructions}
+
     Seuraavaksi listaan tapahtumat:
 
     ${eventBlock}
-
-    ${heroInstructions}
 
     VISUAALINEN SOMMITTELU (TÄRKEÄ):
 
