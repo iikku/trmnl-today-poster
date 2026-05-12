@@ -28,7 +28,11 @@ const toReadableDate = (date: string) => {
   return formatDate(asDate, readableShortDateFormat, { locale: fi });
 }
 
-const toTitle = (date: Date) => format(date, 'cccc d. MMMM', { locale: fi });
+const toTitle = (date: Date) => {
+  const formatted = format(date, "cccc d. MMMM yyyy", { locale: fi });
+  const capitalized = formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  return capitalized;
+} 
 
 type NormalizedEvent = {
   label: string;
@@ -103,16 +107,16 @@ const buildEventDataBlock = (
   const groups = groupEventsByDay(events);
 
   const renderGroup = (label: string, items: NormalizedEvent[]) =>
-    `${label}:\n${items.map(e => `  - ${e.title}`).join("\n")}`;
+    `${label}:\n${items.map(e => `- ${e.title}`).join("\n")}`;
 
   if (todayEvents.length > 0) {
     const otherGroups = groups.filter(g => g.label !== "Tänään");
 
     return `
     PÄÄTAPAHTUMAT:
-    ${todayEvents.map(e => `- ${e.title}`).join("\n")}
+    ${todayEvents.map(e => `- ${e.title}`).join("\n\t")}
 
-    MUUT TAPAHTUMAT:
+    ${otherGroups.length > 0 ? "MUUT TAPAHTUMAT:\n" : ""}
     ${otherGroups.map(g => renderGroup(g.label, g.items)).join("\n\n")}
     `;
   }
@@ -129,10 +133,10 @@ const buildEventDataBlock = (
 const eventPrompt = (eventBlock: string, hasHero: boolean) => {
   const heroInstructions = hasHero
     ? `
-    Kalenteritapahtumat näyttävä osio koostuu päätapahtumasta (tänään) ja muista tapahtumista (tulevat).
+    Kalenteritapahtumat näyttävä osio koostuu yhdestä tai useammasta päätapahtumasta (tänään) ja muista tapahtumista (tulevat).
 
-    PÄÄTAPAHTUMAN ESITYS:
-    - Esitä päätapahtuma selkeästi suurimpana visuaalisena elementtinä
+    PÄÄTAPAHTUMIEN ESITYS:
+    - Esitä päätapahtumat selkeästi suurimpana visuaalisena elementtinä
     - Sen tulee hallita sommittelua
     - Voit käyttää siihen liittyvää kuvitusta
     - Muut tapahtumat ovat selkeästi pienempiä
@@ -142,13 +146,13 @@ const eventPrompt = (eventBlock: string, hasHero: boolean) => {
     - Tapahtumat on jo ryhmitelty päivän mukaan
     - Jokainen päivä on otsikko, jonka alla sen tapahtumat
     - Älä toista päivää jokaisen tapahtuman kohdalla
-    - Merkitse tapahtumien ajankohta ja nimi selkeästi
+    - Merkitse tapahtumien päivä ja nimi selkeästi
     `
     : `
     Kalenteritapahtumat näyttävä osio koostuu joukosta tulevia tapahtumia.
 
     TAPAHTUMIEN ESITYS
-    - Merkitse tapahtumien ajankohta ja nimi selkeästi
+    - Merkitse tapahtumien päivä ja nimi selkeästi
     - Tapahtumat on jo ryhmitelty päivän mukaan
     - Jokainen päivä on otsikko, jonka alla sen tapahtumat
     - Älä toista päivää jokaisen tapahtuman kohdalla
@@ -167,8 +171,7 @@ const eventPrompt = (eventBlock: string, hasHero: boolean) => {
     TUNNELMA:
     - Tapahtumat ovat tulevia → luo odottava, kevyt tunnelma
     - Esitä tapahtumat ikään kuin tulevina muistutuksina, ei pääviestinä
-    - Vältä huomiota huutavaa typografiaa tapahtumien kohdalla
-    - Älä otsikoi tapahtumia yhteisellä otsikolla "Tapahtumat" tai "Tulevat tapahtumat"
+    - Älä otsikoi tapahtumia yhteisellä otsikolla "Tapahtumat" tai "Tulevat tapahtumat", katsojalle on ilmankin selvää, että ne ovat tapahtumia.
   `;
 
   return `
@@ -201,6 +204,8 @@ const eventPrompt = (eventBlock: string, hasHero: boolean) => {
       - olla hieman eri kohdissa (ei täydellisesti linjassa)
       - seurata muotoa tai kuvitusta
       - olla osittain päällekkäin kuvituksen kanssa
+
+    - Tapahtumiin ei koskaan liity kellonaikaa, ne ovat aina koko päivän mittaisia tapahtumia
     
     - Käytä Mid-Century Modern -julisteille tyypillistä rytmiä:
       - epäsäännöllinen mutta tasapainoinen sijoittelu
@@ -223,30 +228,29 @@ const eventPrompt = (eventBlock: string, hasHero: boolean) => {
 const readableWeather = async () => {
   const weather = await getCurrentWeather();
   return `
-  - Sääennuste (oikeassa osiossa):
+    SÄÄENNUSTE:
+    - Ennuste on julisteen oikealla puolella, vastapainona tapahtumille
+    - Sisältää tasan neljä osaa: Aamu, Päivä, Ilta, Yö
+    - Jokaisessa:
+      - sään symboli
+      - lämpötila
+      - sademäärä
+    - Tiedot annetaan erikseen ja ne tulee esittää täsmälleen
+
+    - Esitä nämä neljä osaa selkeästi erillisinä, mutta EI pakotetusti täydelliseen ruudukkoon
+    - Ikonien tulee olla yksinkertaisia, paksuviivaisia ja tunnistettavia myös ditheröitynä
+    - Vältä pieniä yksityiskohtia
+
+    Näytä sääennusteen tiedot seuraavassa järjestyksessä:
     
-  Sääennuste:
-  - Sisältää tasan neljä osaa: Aamu, Päivä, Ilta, Yö
-  - Jokaisessa:
-    - sään symboli
-    - lämpötila
-    - sademäärä
-  - Tiedot annetaan erikseen ja ne tulee esittää täsmälleen
+    1. Aamu: sään symboli: ${weather.morning.symbol}, lämpötila: ${weather.morning.temperature} astetta, sademäärä: ${weather.morning.rain} mm
+    2. Päivä: sään symboli: ${weather.day.symbol}, lämpötila: ${weather.day.temperature} astetta, sademäärä: ${weather.day.rain} mm
+    3. Ilta: sään symboli: ${weather.evening.symbol}, lämpötila: ${weather.evening.temperature} astetta, sademäärä: ${weather.evening.rain} mm
+    4. Yö: sään symboli: ${weather.night.symbol}, lämpötila: ${weather.night.temperature} astetta, sademäärä: ${weather.night.rain} mm
 
-  - Esitä nämä neljä osaa selkeästi erillisinä, mutta EI pakotetusti täydelliseen ruudukkoon
-  - Ikonien tulee olla yksinkertaisia, paksuviivaisia ja tunnistettavia myös ditheröitynä
-  - Vältä pieniä yksityiskohtia
-
-  Näytä sääennusteen tiedot seuraavassa järjestyksessä:
-  
-  1. Aamu: sään symboli: ${weather.morning.symbol}, lämpötila: ${weather.morning.temperature} astetta, sademäärä: ${weather.morning.rain} mm
-  2. Päivä: sään symboli: ${weather.day.symbol}, lämpötila: ${weather.day.temperature} astetta, sademäärä: ${weather.day.rain} mm
-  3. Ilta: sään symboli: ${weather.evening.symbol}, lämpötila: ${weather.evening.temperature} astetta, sademäärä: ${weather.evening.rain} mm
-  4. Yö: sään symboli: ${weather.night.symbol}, lämpötila: ${weather.night.temperature} astetta, sademäärä: ${weather.night.rain} mm
-
-  Esitä sää selkeästi ikään kuin osana 50-luvun mainosta lämpötilojen ja symbolien kera.
-  Tee symboleista elävän ja leikkisän näköisiä, ei vain tiukkaa infografiikkaa.
-  Sademäärän ja lämpötilan on oltava helposti luettavissa.
+    Esitä sää selkeästi ikään kuin osana 50-luvun mainosta lämpötilojen ja symbolien kera.
+    Tee symboleista elävän ja leikkisän näköisiä, ei vain tiukkaa infografiikkaa.
+    Sademäärän ja lämpötilan on oltava helposti luettavissa.
   `
 }
 
@@ -278,8 +282,8 @@ export const generatePrompt = async () => {
     - Kaikkien tekstien tulee olla erittäin helposti luettavissa myös matalalla resoluutiolla
 
     TYYLI:
-    - Mid-Century Modern, inspiroitunut 1950-luvun julisteista ja mainosgrafiikasta
-    - Geometriset muodot, orgaaniset muodot ja atomic age -henkiset elementit
+    - Tärkeimpänä Mid-Century Modern, inspiroitunut 1950-luvun julisteista ja mainosgrafiikasta
+    - Geometriset muodot, orgaaniset muodot, biomorphiset muodot ja atomic age tai googie -henkiset elementit
     - Kuvituksellinen ote: tämä EI ole moderni dashboard tai UI, vaan kuvitettu juliste
 
     KOKONAISUUDEN SOMMITTELU:
@@ -287,25 +291,25 @@ export const generatePrompt = async () => {
 
     ${eventsSection}
 
-    Teksti ja kieli:
+    TEKSTI JA KIELI:
     - Kaikki teksti suomeksi
-    - Käytä selkeitä, paksuja sans-serif-tyylisiä kirjaimia
+    - Käytä selkeitä sans-serif-tyylisiä kirjaimia
     - Vältä ohuita viivoja ja liian koristeellisia fontteja
     - Hyödynnä typografista kontrastia (koko, paino, asettelu)
     - Teksti voi mennä osittain kuvien päälle (overlay)
     
-    Otsikko:
+    KOKO JULISTEEN OTSIKKO:
     "${toTitle(new Date())}"
 
     ${specialDayPrompt(specialDay)}
 
     ${weather}
 
-    Teema ja koristelu:
+    TEEMA JA KORISTELU:
     - Koita tunnistaa viikonpäivästä ${rawEvents ? ", kalenterin tapahtumista" : ""} ${specialDay ? ", juhlapäivästä" : ""} ja sääennusteesta jokin yhtenäinen teema tai useampi erillistä teemaa ja koristele näkymää sen mukaisesti.
 
-    Tavoite:
-    - Selkeä ja visuaalisesti kiinnostava 1950-luvun juliste, joka toimii 2-bittisenä.
+    TAVOITE:
+    - Selkeä ja visuaalisesti kiinnostava 1950-luvun juliste, joka toimii nelivärisenä.
   `;
 
   log("Created the following prompt:\n", prompt);
