@@ -263,11 +263,14 @@ export const generatePrompt = async () => {
   log("Generating prompt");
   const rawEvents = await getEvents();
 
-  const normalized = normalizeEvents(rawEvents);
-  const todayEvents = extractTodayEvents(normalized);
+  var eventsSection = "";
+  if (rawEvents.length > 0) {
+    const normalized = normalizeEvents(rawEvents);
+    const todayEvents = extractTodayEvents(normalized);
 
-  const eventBlock = buildEventDataBlock(normalized, todayEvents);
-  const eventsSection = eventPrompt(eventBlock, todayEvents.length > 0);
+    const eventBlock = buildEventDataBlock(normalized, todayEvents);
+    eventsSection = eventPrompt(eventBlock, todayEvents.length > 0);
+  }
 
   const weather = await readableWeather();
   const specialDay = await todaysSpecialDayName();
@@ -306,7 +309,7 @@ export const generatePrompt = async () => {
     ${weather}
 
     TEEMA JA KORISTELU:
-    - Koita tunnistaa viikonpäivästä ${rawEvents ? ", kalenterin tapahtumista" : ""} ${specialDay ? ", juhlapäivästä" : ""} ja sääennusteesta jokin yhtenäinen teema tai useampi erillistä teemaa ja koristele näkymää sen mukaisesti.
+    - Koita tunnistaa viikonpäivästä ${rawEvents.length > 0 ? ", kalenterin tapahtumista" : ""} ${specialDay ? ", juhlapäivästä" : ""} ja sääennusteesta jokin yhtenäinen teema tai useampi erillistä teemaa ja koristele näkymää sen mukaisesti.
 
     TAVOITE:
     - Selkeä ja visuaalisesti kiinnostava 1950-luvun juliste, joka toimii nelivärisenä.
