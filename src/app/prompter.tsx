@@ -229,7 +229,7 @@ const readableWeather = async () => {
   const weather = await getCurrentWeather();
   return `
     SÄÄENNUSTE:
-    - Ennuste on julisteen oikealla puolella, vastapainona tapahtumille
+    - Ennuste on julisteen oikealla puolella
     - Sisältää tasan neljä osaa: Aamu, Päivä, Ilta, Yö
     - Jokaisessa:
       - sään symboli
@@ -263,7 +263,7 @@ export const generatePrompt = async () => {
   log("Generating prompt");
   const rawEvents = await getEvents();
 
-  var eventsSection = "";
+  var eventsSection = "Juliste ei sisällä mitään tapahtumatietoja, koska kalenterissa ei ole yhtään tapahtumaa.";
   if (rawEvents.length > 0) {
     const normalized = normalizeEvents(rawEvents);
     const todayEvents = extractTodayEvents(normalized);
