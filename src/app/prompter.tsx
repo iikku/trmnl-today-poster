@@ -116,6 +116,7 @@ const buildEventDataBlock = (
     PÄÄTAPAHTUMAT:
     ${todayEvents.map(e => `- ${e.title}`).join("\n\t")}
 
+    ${otherGroups.length == 0 ? "MUITA TAPAHTUMIA EI OLE\n" : ""}
     ${otherGroups.length > 0 ? "MUUT TAPAHTUMAT:\n" : ""}
     ${otherGroups.map(g => renderGroup(g.label, g.items)).join("\n\n")}
     `;
@@ -131,6 +132,28 @@ const buildEventDataBlock = (
 };
 
 const eventPrompt = (eventBlock: string, hasHero: boolean) => {
+  const dataIntegrityRules = `
+  TAPAHTUMATIETOJEN TARKKUUS (ERITTÄIN TÄRKEÄ):
+  
+  Alla luetellut tapahtumat muodostavat täydellisen ja lopullisen tapahtumadatan.
+  
+  Saa käyttää ainoastaan alla annettuja tapahtumia.
+  
+  Kiellettyä:
+  - uusien tapahtumien keksiminen
+  - uusien päivien keksiminen
+  - esimerkkitapahtumien lisääminen
+  - paikkamerkkitapahtumien lisääminen
+  - ylimääräisten otsikoiden lisääminen
+  - kuvitteellisten kalenterimerkintöjen lisääminen
+  
+  Jos jokin tapahtumaryhmä puuttuu datasta,
+  älä näytä sitä lainkaan.
+  
+  Julisteessa ei saa esiintyä yhtään tapahtumanimeä,
+  jota ei löydy tapahtumalistasta.
+  `;
+
   const heroInstructions = hasHero
     ? `
     Kalenteritapahtumat näyttävä osio koostuu yhdestä tai useammasta päätapahtumasta (tänään) ja muista tapahtumista (tulevat).
@@ -147,6 +170,7 @@ const eventPrompt = (eventBlock: string, hasHero: boolean) => {
     - Jokainen päivä on otsikko, jonka alla sen tapahtumat
     - Älä toista päivää jokaisen tapahtuman kohdalla
     - Merkitse tapahtumien päivä ja nimi selkeästi
+    - Esitä vain tapahtumia, jota on listattu tapahtumadatan joukossa
     `
     : `
     Kalenteritapahtumat näyttävä osio koostuu joukosta tulevia tapahtumia.
@@ -176,6 +200,8 @@ const eventPrompt = (eventBlock: string, hasHero: boolean) => {
 
   return `
     KALENTERITAPAHTUMAT:
+
+    ${dataIntegrityRules}
 
     ${heroInstructions}
 
@@ -309,7 +335,19 @@ export const generatePrompt = async () => {
     ${weather}
 
     TEEMA JA KORISTELU:
-    - Koita tunnistaa viikonpäivästä ${rawEvents.length > 0 ? ", kalenterin tapahtumista" : ""} ${specialDay ? ", juhlapäivästä" : ""} ja sääennusteesta jokin yhtenäinen teema tai useampi erillistä teemaa ja koristele näkymää sen mukaisesti.
+
+    Koristeellinen kuvitus saa ottaa inspiraatiota
+    viikonpäivästä, ${rawEvents.length > 0 ? ", kalenterin tapahtumista" : ""} ${specialDay ? ", juhlapäivästä" : ""} ja sääennusteesta.
+
+    Kuvitus ei kuitenkaan saa sisältää:
+
+    - uusia tapahtumia
+    - uusia päiväotsikoita
+    - uusia päivämääriä
+    - uusia kalenterimerkintöjä
+    - uusia tekstisisältöjä
+
+    Koristeellinen kuvitus on visuaalista, ei informatiivista.
 
     TAVOITE:
     - Selkeä ja visuaalisesti kiinnostava 1950-luvun juliste, joka toimii nelivärisenä.
