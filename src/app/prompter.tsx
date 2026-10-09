@@ -32,7 +32,7 @@ const toTitle = (date: Date) => {
   const formatted = format(date, "cccc d. MMMM yyyy", { locale: fi });
   const capitalized = formatted.charAt(0).toUpperCase() + formatted.slice(1);
   return capitalized;
-} 
+}
 
 type NormalizedEvent = {
   label: string;
@@ -253,6 +253,21 @@ const eventPrompt = (eventBlock: string, hasHero: boolean) => {
 
 const readableWeather = async () => {
   const weather = await getCurrentWeather();
+
+  // Define your gust threshold (e.g., 14 m/s or adjust to your preference)
+  const GUST_WARNING_THRESHOLD = 14;
+  const maxDailyWindGust = Math.max(
+    weather.morning.gustSpeed,
+    weather.day.gustSpeed,
+    weather.evening.gustSpeed
+  );
+  const isWindy = maxDailyWindGust >= GUST_WARNING_THRESHOLD;
+
+  // Optional extra warning instruction for the AI image generator prompt
+  const windWarningInstruction = isWindy
+    ? `\n    ERITYINEN SÄÄVAROITUS: Tänään on poikkeuksellisen tuulista (${maxDailyWindGust} m/s puuskissa)! Sisällytä julisteeseen visuaalinen elementti tai tunnelma voimakkaasta tuulesta (esim. taipuvia elementtejä tai tuulista grafiikkaa).\n`
+    : "";
+
   return `
     SÄÄENNUSTE:
     - Ennuste on julisteen oikealla puolella
@@ -277,6 +292,7 @@ const readableWeather = async () => {
     Esitä sää selkeästi ikään kuin osana 50-luvun mainosta lämpötilojen ja symbolien kera.
     Tee symboleista elävän ja leikkisän näköisiä, ei vain tiukkaa infografiikkaa.
     Sademäärän ja lämpötilan on oltava helposti luettavissa.
+    ${windWarningInstruction}
   `
 }
 
@@ -337,7 +353,7 @@ export const generatePrompt = async () => {
     TEEMA JA KORISTELU:
 
     Koristeellinen kuvitus saa ottaa inspiraatiota
-    viikonpäivästä, ${rawEvents.length > 0 ? ", kalenterin tapahtumista" : ""} ${specialDay ? ", juhlapäivästä" : ""} ja sääennusteesta.
+    viikonpäivästä ${rawEvents.length > 0 ? ", kalenterin tapahtumista" : ""} ${specialDay ? ", juhlapäivästä" : ""} ja sääennusteesta.
 
     Kuvitus ei kuitenkaan saa sisältää:
 

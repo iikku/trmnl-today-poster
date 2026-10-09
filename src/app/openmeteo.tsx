@@ -7,7 +7,8 @@ import { openWeatherWMOToEmoji } from '@akaguny/open-meteo-wmo-to-emoji';
 const params = {
   "latitude": process.env.WEATHER_LATITUDE,
   "longitude": process.env.WEATHER_LONGITUDE,
-  "hourly": ["temperature_2m", "rain", "weather_code", "is_day"],
+  "hourly": ["temperature_2m", "rain", "weather_code", "is_day", "wind_gusts_10m"],
+  "wind_speed_unit": "ms", // Forces m/s globally for the response
   "timezone": "GMT+2",
   "forecast_days": 2,
 };
@@ -32,7 +33,8 @@ const fetchWeather = async () => {
       temperature_2m: hourly.variables(0)!.valuesArray(),
       rain: hourly.variables(1)!.valuesArray(),
       weatherCode: hourly.variables(2)!.valuesArray(),
-      isDay: hourly.variables(3)!.valuesArray()
+      isDay: hourly.variables(3)!.valuesArray(),
+      gustSpeed: hourly.variables(4)!.valuesArray(),
     },
   };
 
@@ -47,7 +49,8 @@ const fetchWeather = async () => {
     symbol: openWeatherWMOToEmoji(
       weatherData.hourly.weatherCode?.at(symbolHour),
       weatherData.hourly.isDay?.at(symbolHour) == 1 || false
-    ).value
+    ).value,
+    gustSpeed: getMaxWind(weatherData.hourly.gustSpeed, start, end)
   });
 
   // Helper to sum rain over a specific range of hourly indices
@@ -72,6 +75,17 @@ const fetchWeather = async () => {
     return Math.round(sum / count);
   };
 
+  // Helper to find peak wind speed in a block (or max of the day)
+  const getMaxWind = (wind: Float32Array | null, start: number, end: number) => {
+    if (!wind) return 0;
+    let max = 0;
+    for (let i = start; i <= end; i++) {
+      const val = wind.at(i) || 0;
+      if (val > max) max = val;
+    }
+    return Math.round(max);
+  };
+
   const current: WeatherForFullDay = {
     morning: buildBlock(6, 11, 8),    // 6 hours total, uses 08:00 for icon
     day: buildBlock(12, 17, 14),      // 6 hours total, uses 14:00 (2 PM) for icon
@@ -85,7 +99,8 @@ const fetchWeather = async () => {
 type Weather = {
   temperature: number,
   rain: number,
-  symbol: string
+  symbol: string,
+  gustSpeed: number
 }
 
 type WeatherForFullDay = {
